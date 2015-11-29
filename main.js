@@ -24,6 +24,23 @@ var main = function (ex) {
      */
     var isCorrectAnswerBeingDisplayed = false;
     var oldAnswers = []; // Used in Q type 0 to restore old answers after unshowing CA
+    
+    /* Used in Q type 2*/
+    var leftCode1 =  "def isMultipleOfFourLeft(n):\n"
+                    +"    result = False\n"
+                    +"    if n%4 == 0:\n"
+                    +"        result = True\n"
+                    +"    return result";
+    var rightCode1 = "def isMultipleOfFourRight(n):\n"
+                    +"    result = False\n"
+                    +"    if n%4 == 0:\n"
+                    +"        result = True\n"
+                    +"        return result";
+
+    var type2List = [IndentPrac(leftCode1,rightCode1,
+    	"calculates if an integer is a multiple of 4",1)];
+
+    var currentIndentPrac = type2List[0];
 
     /* Shows the appropriate question type
      */
@@ -49,7 +66,9 @@ var main = function (ex) {
             case 1:
                 break;
             case 2:
-                break;
+            	/* delete and draw */
+                ex.graphics.ctx.clearRect(0,0,ex.width(),ex.height());
+                currentIndentPrac.draw();
         };
     };
 
@@ -84,7 +103,7 @@ var main = function (ex) {
             case 1:
                 break;
             case 2:
-                break;
+                
         };
         /* Create the next button */
         var x = ex.width()-100;
@@ -96,6 +115,7 @@ var main = function (ex) {
         nextButton.on("click", function () {
             isCorrectAnswerBeingDisplayed = false;
             questionNum++;
+            questionType = 2;
             /* USE THIS SPACE TO CHANGE QUESTION TYPE OR TO CHECK IF YOU HAVE 
              * REACHED THE MAX NUMBER OF QUESTIONS! 
              */
@@ -161,7 +181,9 @@ var main = function (ex) {
             case 1:
                 break;
             case 2:
-                break;
+                ex.chromeElements.submitButton.enable();
+                ex.chromeElements.submitButton.off("click");
+                ex.chromeElements.submitButton.on("click", currentIndentPrac.submit);
         };
     };
 
@@ -184,11 +206,14 @@ var main = function (ex) {
         code.clicked = false;
          
         code.draw = function(){
-            code.well = ex.createCode(x,y,code.content,
+        	console.log(code.width,code.height);
+            code.well = ex.createCode(code.x,code.y,code.content,
                 {language:"python",
                  selectable:true,
-                  width:code.width,
-                  height:code.height}).on("click",function(){
+                 border:"none",
+                 width:code.width,
+                 height:code.height
+                }).on("click",function(){
                     code.clicked = true;
                     code.highlight();
                     if (code.left) {
@@ -201,17 +226,20 @@ var main = function (ex) {
                     }
                     currentIndentPrac.redrawCard();}
                     );
+            ex.graphics.ctx.strokeStyle = "grey";
+            ex.graphics.ctx.strokeRect(code.x,code.y,code.width,code.height);
             if (code.clicked) code.highlight();
         }
         code.clear = function(){
-            ex.graphics.ctx.clearRect(code.x,code.y,code.width,code.height);
+            ex.graphics.ctx.clearRect(code.x-code.margin,code.y-code.margin,
+            	ex.width()/2,code.height+15);
             if (code.well != undefined){
                 code.well.remove();
             }
         }
         code.highlight = function(){
             ex.graphics.ctx.strokeStyle = "red";
-            ex.graphics.ctx.strokeRect(code.x,code.y,code.width,code.height);
+            ex.graphics.ctx.strokeRect(code.x-4,code.y-2,code.width+6,code.height+4);
         }
         return code;
     }
@@ -223,10 +251,13 @@ var main = function (ex) {
         q.question = question;
         q.ca = ca;
         q.clicked = 0;
-        q.x = 
+        q.textPara = undefined;
+        q.x = 20;
+        q.y = ex.height()*3/4;
+        
         q.drawQuestion = function(){
-            ex.createParagraph(q.x,q.y,
-                "Click on the code that correctly"+q.question);
+            q.textPara = ex.createParagraph(q.x,q.y,
+                "Click on the code that correctly "+q.question);
         }
         q.draw = function(){
             q.leftCard.draw();
@@ -242,6 +273,37 @@ var main = function (ex) {
                 q.leftCard.clear();
                 q.leftCard.draw();
             }
+        }
+        q.clear = function(){
+        	q.leftCard.clear();
+        	q.rightCard.clear();
+        	if (q.textPara != undefined){
+        		q.textPara.remove();
+        	}
+
+        }
+        q.submit = function(){
+        	if (q.clicked == 0){
+        		ex.alert("Please select a choice!",{
+                    fontSize: 20,
+                    stay: true,
+                    color:"yellow"
+            });
+        	}
+        	else {
+        		if (q.clicked == ca){
+        			ex.alert("Correct!",{
+                    fontSize: 20,
+                    stay: true,
+                    color:"green"
+            });
+        		}
+        		else ex.alert("Incorrect!",{
+                    fontSize: 20,
+                    stay: true,
+                    color:"red"
+            });
+        	}
         }
         return q;
     }
