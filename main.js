@@ -36,36 +36,14 @@ var main = function (ex) {
                 var margin = 50;
                 var width = ex.width()-x-margin;
                 var height = ex.height()-y-margin;
-                var code = "def f(x<span>'_1'</span>\n    return <span>'_2'</span>";
-                var dropdownInfo = {"'_1'" : {":)" : {"feedback" : "Should the colon be inside or outside the parenthesis?",
-                                                    "correct" : false,
-                                                    "default" : false},
-                                            "):" : {"feedback" : "First you close the parenthesis that lists the arguments, and then you put a colon.",
-                                                    "correct" : true,
-                                                    "default" : false},
-                                            ");" : {"feedback" : "Check your colon.",
-                                                    "correct" : false,
-                                                    "default" : true},
-                                            ")" : {"feedback" : "What goes at the end of every function definition?",
-                                                    "correct" : false,
-                                                    "default" : false}},
-                                    "'_2'" : {"5*x;" : {"feedback" : "What, if anything, goes at the end of every line?",
-                                                    "correct" : false,
-                                                    "default" : true},
-                                            "5x" : {"feedback" : "You need an operator between the 5 and the x.",
-                                                    "correct" : false,
-                                                    "default" : false},
-                                            "x+x+x+x+x" : {"feedback" : "Python does not use any symbol to indicate the end of a linr.",
-                                                    "correct" : true,
-                                                    "default" : false},
-                                            "5(x)" : {"feedback" : "You need an operator between the 5 and the x.",
-                                                    "correct" : false,
-                                                    "default" : false}}};
-                dropdownList = createCodeWellWithOptions(ex, x, y, width, height, code, dropdownInfo, true, true);
+                var codeInfo = createCode(questionType);
+                var code = codeInfo.code;
+                var dropdownInfo = codeInfo.dropdownInfo;
+                var descr = codeInfo.descr;
+                dropdownList = createCodeWellWithOptions(ex, x, y, width, height, code, dropdownInfo, true, true, true);
 
                 /* Create the instructions/description of code */
-                var text = "Write a function that takes in an integer and returns that integer multiplied by 5"
-                var header = ex.createParagraph(0,0,text,{size: "xlarge", width:ex.width(), textAlign:"center"});
+                var header = ex.createParagraph(0,0,descr,{size: "xlarge", width:ex.width(), textAlign:"center"});
 
                 break;
             case 1:
@@ -283,7 +261,7 @@ var main = function (ex) {
  * maps to the dropdown, and the key "correct" maps to the correct answer for
  * that dropdown.
  */
-var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdownInfo, showFeedbackIfCorrect, showFeedbackIfWrong) {
+var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdownInfo, showFeedbackIfCorrect, showFeedbackIfWrong, randomDefault) {
 
     /* Success and failure functions, which will be called when the user selects
      * an option on the dropdown
@@ -315,17 +293,23 @@ var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdow
     /* Create the dropdown */
     var dropdownList = [];
     for (var substring in dropdownInfo) {
-        if (dropdownInfo.hasOwnProperty(substring)) {
+        if (dropdownInfo.hasOwnProperty(substring) && (code.indexOf(substring) > -1)) {
             /* Create the dropdown options object */
             var elements = {};
             var defaultStr = "";
+            var randomDefaultI = getRandomInt(0, Object.keys(dropdownInfo[substring]).length);
+            var currI = 0;
             var correctAnswer = undefined;
             for (var option in dropdownInfo[substring]) {
                 if (dropdownInfo[substring].hasOwnProperty(option)) {
                     var correct = dropdownInfo[substring][option]["correct"];
-                    if (dropdownInfo[substring][option]["default"]) {
+                    if (dropdownInfo[substring][option]["default"] && (!randomDefault)) {
                         defaultStr = option;
                     };
+                    if (randomDefault && randomDefaultI == currI) {
+                        defaultStr = option;
+                    };
+                    currI++;
                     var feedback = undefined;
                     if (correct) {
                         correctAnswer = option;
@@ -354,3 +338,122 @@ var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdow
     };
     return dropdownList;
 };
+
+var createCode = function(questionType) {
+    switch (questionType) {
+        case 0:
+            var arithmeticOperators = {"+" : "adds", "*" : "multiplies", "-" : "subtracts", "/" : "divides"};
+            var logicOperators = {"and" : "and", "or" : "or"};
+            var variableNames = ["x", "y", "z", "n", "i"];
+            var functionNames = ["f", "g", "h"];
+
+            var typeOfQuestion = 1;
+
+            /* Question 1 */
+            switch (typeOfQuestion) {
+                case 1:
+                    var num = String(getRandomInt(0, 15));
+                    var operator = getRandomKey(arithmeticOperators);
+                    var variable = variableNames[getRandomInt(0, variableNames.length-1)];
+                    var functionName = functionNames[getRandomInt(0, functionNames.length-1)];
+                    var correct1 = "):";
+                    var print = getRandomInt(0, 1);
+                    var correct2 = "";
+                    if (print == 0) {
+                        correct2 = "return ";
+                    } else {
+                        correct2 = "print(";
+                    }
+                    var correct3 = variable.concat(operator).concat(num);
+                    if (operator == "*") {
+                        var rand = getRandomInt(0, 1);
+                        if (rand == 0) {
+                            correct3 = variable.concat(("+".concat(variable)).repeat(num-1));
+                        }
+                    }
+                    if (print == 1) {
+                        correct3 = correct3.concat(" )");
+                    }
+                    var seed = getRandomInt(0, 3);
+                    var code = "def ".concat(functionName).concat("(").concat(variable);
+                    if (seed == 0) {
+                        code = code.concat("<span>'_1'</span>\n    <span>'_2'</span><span>'_3'</span>");
+                    } else if (seed == 1) {
+                        code = code.concat(correct1).concat("\n    <span>'_2'</span><span>'_3'</span>");
+                    } else  if (seed == 2) {
+                        code = code.concat("<span>'_1'</span>\n    ").concat(correct2).concat(" <span>'_3'</span>");
+                    } else {
+                        code = code.concat("<span>'_1'</span>\n    <span>'_2'</span>").concat(correct3);
+                    }
+
+                    var wrong2 = "";
+                    if (print == 1) {
+                        wrong2 = "return ";
+                    } else {
+                        wrong2 = "print(";
+                    }
+                    var wrongFeedback2 = "Do you want to return or print?";
+                    var correctFeedback2 = "Return gives the value back to the function that called it, whereas print writes it to console.";
+                    var dropdownInfo = {"'_1'" : {":)" : {"feedback" : "Should the colon be inside or outside the parenthesis?",
+                                                            "correct" : false,
+                                                            "default" : false},
+                                                    correct1 : {"feedback" : "First you close the parenthesis that lists the arguments, and then you put a colon.",
+                                                            "correct" : true,
+                                                            "default" : false},
+                                                    ");" : {"feedback" : "Check your colon.",
+                                                            "correct" : false,
+                                                            "default" : true},
+                                                    ")" : {"feedback" : "What goes at the end of every function definition?",
+                                                            "correct" : false,
+                                                            "default" : false}},
+                                            "'_2'" : {"return(" : {"feedback" : "Is return a function or statement?",
+                                                            "correct" : false,
+                                                            "default" : true},
+                                                    wrong2 : {"feedback" : wrongFeedback2,
+                                                            "correct" : false,
+                                                            "default" : false},
+                                                    "print " : {"feedback" : "In Python 3, is print a function or a statement?",
+                                                            "correct" : true,
+                                                            "default" : false},
+                                                    correct2 : {"feedback" : correctFeedback2,
+                                                            "correct" : false,
+                                                            "default" : false}}}
+                                            "'_3'" : {num.concat(operator).concat(variable).concat(";") : {"feedback" : "What, if anything, goes at the end of every line?",
+                                                            "correct" : false,
+                                                            "default" : true},
+                                                    num.concat(variable) : {"feedback" : "You need an operator between the 5 and the x.",
+                                                            "correct" : false,
+                                                            "default" : false},
+                                                    correct3 : {"feedback" : "Python does not use any symbol to indicate the end of a linr.",
+                                                            "correct" : true,
+                                                            "default" : false},
+                                                    num.concat(operator).concat("{").concat(variable).concat("}") : {"feedback" : "Curly brackets are not the same as parenthesis.",
+                                                            "correct" : false,
+                                                            "default" : false}}};
+
+                var description = "Write a function that takes in an integer, ".concat(variable).concat(", and ").concat(arithmeticOperators[operator]).concat(" ").concat(variable).concat(" and ").concat(num).concat(".");
+                return {"code" : code, "dropdownInfo" : dropdownInfo, "descr" : descr};
+                break;
+            }
+            break;
+        case 1:
+            break;
+        case 2:
+            break;
+    };
+}
+
+//from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+var getRandomInt = function (min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+var getRandomKey = function (obj) {
+    var num = getRandomInt(0, Object.keys(obj).length-1);
+    var i = 0;
+    for (var key in obj) {
+        if (i == num) return key;
+        i++;
+    }
+}
+
