@@ -20,6 +20,10 @@ var main = function (ex) {
      */
     var dropdownList = undefined;
 
+    /* create header for question 0 
+     */
+     var header = undefined;
+
     /* Keeps track of whether the correct answer is being displayed or not
      */
     var isCorrectAnswerBeingDisplayed = false;
@@ -60,13 +64,13 @@ var main = function (ex) {
                 dropdownList = createCodeWellWithOptions(ex, x, y, width, height, code, dropdownInfo, true, true, true);
 
                 /* Create the instructions/description of code */
-                var header = ex.createParagraph(0,0,descr,{size: "xlarge", width:ex.width(), textAlign:"center"});
+                header = ex.createParagraph(0,0,descr,{size: "xlarge", width:ex.width(), textAlign:"center"});
 
                 break;
             case 1:
                 break;
             case 2:
-            	/* delete and draw */
+                /* delete and draw */
                 ex.graphics.ctx.clearRect(0,0,ex.width(),ex.height());
                 currentIndentPrac.draw();
         };
@@ -94,7 +98,7 @@ var main = function (ex) {
                 };
                 var beginning = "";
                 if (numOfCorrectDropdowns == dropdownList.length) beginning = "Congratulations!  "
-                if (numOfCorrectDropdowns >= dropdownList.length/2) beginning = "Good job!  "
+                //if (numOfCorrectDropdowns >= dropdownList.length/2) beginning = "Good job!  "
                 var feedback = beginning.concat("You got ").concat(String(numOfCorrectDropdowns)).concat(" dropdowns correct out of ").concat(String(dropdownList.length)).concat(".  Press 'Next' to move on.");
                 ex.showFeedback(feedback);
                 /* Enable Display CA Button */
@@ -115,10 +119,14 @@ var main = function (ex) {
         nextButton.on("click", function () {
             isCorrectAnswerBeingDisplayed = false;
             questionNum++;
-            questionType = 2;
+            questionType = 0;
             /* USE THIS SPACE TO CHANGE QUESTION TYPE OR TO CHECK IF YOU HAVE 
              * REACHED THE MAX NUMBER OF QUESTIONS! 
              */
+            if (header !== undefined) {
+                header.remove();
+                header = undefined;
+            }
             showQuestion();
             nextButton.remove();
             /* Disable Display CA Button */
@@ -359,7 +367,7 @@ var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdow
             /* Create the dropdown options object */
             var elements = {};
             var defaultStr = "";
-            var randomDefaultI = getRandomInt(0, Object.keys(dropdownInfo[substring]).length);
+            var randomDefaultI = getRandomInt(0, Object.keys(dropdownInfo[substring]).length-1);
             var currI = 0;
             var correctAnswer = undefined;
             for (var option in dropdownInfo[substring]) {
@@ -404,7 +412,7 @@ var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdow
 var createCode = function(questionType) {
     switch (questionType) {
         case 0:
-            var arithmeticOperators = {"+" : "adds", "*" : "multiplies", "-" : "subtracts", "/" : "divides"};
+            var arithmeticOperators = {"+" : "_1 added to _2", "*" : "_1 multiplied by _2", "-" : "_1 minus _2", "/" : "_1 divided by _2"};
             var logicOperators = {"and" : "and", "or" : "or"};
             var variableNames = ["x", "y", "z", "n", "i"];
             var functionNames = ["f", "g", "h"];
@@ -414,7 +422,7 @@ var createCode = function(questionType) {
             /* Question 1 */
             switch (typeOfQuestion) {
                 case 1:
-                    var num = String(getRandomInt(0, 15));
+                    var num = String(getRandomInt(1, 15));
                     var operator = getRandomKey(arithmeticOperators);
                     var variable = variableNames[getRandomInt(0, variableNames.length-1)];
                     var functionName = functionNames[getRandomInt(0, functionNames.length-1)];
@@ -426,15 +434,16 @@ var createCode = function(questionType) {
                     } else {
                         correct2 = "print(";
                     }
-                    var correct3 = variable.concat(operator).concat(num);
+                    var correct3 = num.concat(operator).concat(variable);
                     if (operator == "*") {
                         var rand = getRandomInt(0, 1);
                         if (rand == 0) {
                             correct3 = variable.concat(("+".concat(variable)).repeat(num-1));
                         }
                     }
+                    console.log(correct3);
                     if (print == 1) {
-                        correct3 = correct3.concat(" )");
+                        correct3 = correct3.concat(")");
                     }
                     var seed = getRandomInt(0, 3);
                     var code = "def ".concat(functionName).concat("(").concat(variable);
@@ -456,46 +465,55 @@ var createCode = function(questionType) {
                     }
                     var wrongFeedback2 = "Do you want to return or print?";
                     var correctFeedback2 = "Return gives the value back to the function that called it, whereas print writes it to console.";
-                    var dropdownInfo = {"'_1'" : {":)" : {"feedback" : "Should the colon be inside or outside the parenthesis?",
-                                                            "correct" : false,
-                                                            "default" : false},
-                                                    correct1 : {"feedback" : "First you close the parenthesis that lists the arguments, and then you put a colon.",
-                                                            "correct" : true,
-                                                            "default" : false},
-                                                    ");" : {"feedback" : "Check your colon.",
-                                                            "correct" : false,
-                                                            "default" : true},
-                                                    ")" : {"feedback" : "What goes at the end of every function definition?",
-                                                            "correct" : false,
-                                                            "default" : false}},
-                                            "'_2'" : {"return(" : {"feedback" : "Is return a function or statement?",
-                                                            "correct" : false,
-                                                            "default" : true},
-                                                    wrong2 : {"feedback" : wrongFeedback2,
-                                                            "correct" : false,
-                                                            "default" : false},
-                                                    "print " : {"feedback" : "In Python 3, is print a function or a statement?",
-                                                            "correct" : true,
-                                                            "default" : false},
-                                                    correct2 : {"feedback" : correctFeedback2,
-                                                            "correct" : false,
-                                                            "default" : false}}}
-                                            "'_3'" : {num.concat(operator).concat(variable).concat(";") : {"feedback" : "What, if anything, goes at the end of every line?",
-                                                            "correct" : false,
-                                                            "default" : true},
-                                                    num.concat(variable) : {"feedback" : "You need an operator between the 5 and the x.",
-                                                            "correct" : false,
-                                                            "default" : false},
-                                                    correct3 : {"feedback" : "Python does not use any symbol to indicate the end of a linr.",
-                                                            "correct" : true,
-                                                            "default" : false},
-                                                    num.concat(operator).concat("{").concat(variable).concat("}") : {"feedback" : "Curly brackets are not the same as parenthesis.",
-                                                            "correct" : false,
-                                                            "default" : false}}};
+                    var choice1 = num.concat(operator).concat(variable).concat(";");
+                    var choice2 = num.concat(variable);
+                    var choice3 = num.concat(operator).concat("{").concat(variable).concat("}");
+                    var dropdownInfo = {"'_1'" : {}, "'_2'" : {}, "'_3'" : {}};
+                    dropdownInfo["'_1'"][":)"] = {"feedback" : "Should the colon be inside or outside the parenthesis?",
+                                                                "correct" : false,
+                                                                "default" : false};
+                    dropdownInfo["'_1'"][");"] = {"feedback" : "Check your colon.",
+                                                                "correct" : false,
+                                                                "default" : true};
+                    dropdownInfo["'_1'"][correct1] = {"feedback" : "First you close the parenthesis that lists the arguments, and then you put a colon.",
+                                                                "correct" : true,
+                                                                "default" : false};
+                    dropdownInfo["'_1'"][")"] = {"feedback" : "What goes at the end of every function definition?",
+                                                                "correct" : false,
+                                                                "default" : false};
+                    dropdownInfo["'_2'"]["return("] = {"feedback" : "Is return a function or statement?",
+                                                                "correct" : false,
+                                                                "default" : true};
+                    dropdownInfo["'_2'"][wrong2] = {"feedback" : wrongFeedback2,
+                                                                "correct" : false,
+                                                                "default" : false};
+                    dropdownInfo["'_2'"][correct2] = {"feedback" : correctFeedback2,
+                                                                "correct" : true,
+                                                                "default" : false};
+                    dropdownInfo["'_2'"]["print "] = {"feedback" : "In Python 3, is print a function or a statement?",
+                                                                "correct" : false,
+                                                                "default" : false};
+                    dropdownInfo["'_3'"][choice1] = {"feedback" : "What, if anything, goes at the end of every line?",
+                                                                "correct" : false,
+                                                                "default" : true};
+                    dropdownInfo["'_3'"][choice2] = {"feedback" : "You need an operator between the 5 and the x.",
+                                                                "correct" : false,
+                                                                "default" : false};
+                    dropdownInfo["'_3'"][correct3] = {"feedback" : "Python does not use any symbol to indicate the end of a linr.",
+                                                                "correct" : true,
+                                                                "default" : false};
+                    dropdownInfo["'_3'"][choice3] = {"feedback" : "Curly brackets are not the same as parenthesis.",
+                                                                "correct" : false,
+                                                                "default" : false};
+                    var operatorString = arithmeticOperators[operator].replace("_1", num).replace("_2", variable);
+                    var returnStr = "returns";
+                    if (print == 1) {
+                        returnStr = "prints";
+                    }
 
-                var description = "Write a function that takes in an integer, ".concat(variable).concat(", and ").concat(arithmeticOperators[operator]).concat(" ").concat(variable).concat(" and ").concat(num).concat(".");
-                return {"code" : code, "dropdownInfo" : dropdownInfo, "descr" : descr};
-                break;
+                    var descr = "Write a function that takes in an integer, ".concat(variable).concat(", and ").concat(returnStr).concat(" ").concat(operatorString).concat(".");
+                    return {"code" : code, "dropdownInfo" : dropdownInfo, "descr" : descr};
+                    break;
             }
             break;
         case 1:
