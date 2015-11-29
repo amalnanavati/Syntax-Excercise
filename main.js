@@ -16,13 +16,11 @@ var main = function (ex) {
     var questionNum = 1;
 
     /* Used in question type 0, this is a list of dropdowns and the correct 
-     * answer for each dropdown 
+     * answer for each dropdown, the code well, and the header
      */
     var dropdownList = undefined;
-
-    /* create header for question 0 
-     */
-     var header = undefined;
+    var code = undefined;
+    var header = undefined;
 
     /* Keeps track of whether the correct answer is being displayed or not
      */
@@ -61,7 +59,9 @@ var main = function (ex) {
                 var code = codeInfo.code;
                 var dropdownInfo = codeInfo.dropdownInfo;
                 var descr = codeInfo.descr;
-                dropdownList = createCodeWellWithOptions(ex, x, y, width, height, code, dropdownInfo, true, true, true);
+                var dict = createCodeWellWithOptions(ex, x, y, width, height, code, dropdownInfo, true, true, true);
+                dropdownList = dict["dropdown"];
+                code = dict["code"];
 
                 /* Create the instructions/description of code */
                 header = ex.createParagraph(0,0,descr,{size: "xlarge", width:ex.width(), textAlign:"center"});
@@ -111,7 +111,7 @@ var main = function (ex) {
         };
         /* Create the next button */
         var x = ex.width()-100;
-        var y = ex.height()-50;
+        var y = ex.height()-25;
         var nextButton = ex.createButton(x, y,"Next", {
                                                         color: "white",
                                                         size: "medium"
@@ -123,15 +123,37 @@ var main = function (ex) {
             /* USE THIS SPACE TO CHANGE QUESTION TYPE OR TO CHECK IF YOU HAVE 
              * REACHED THE MAX NUMBER OF QUESTIONS! 
              */
-            if (header !== undefined) {
-                header.remove();
-                header = undefined;
-            }
+            deleteAll();
             showQuestion();
             nextButton.remove();
             /* Disable Display CA Button */
             ex.chromeElements.displayCAButton.disable();
         });
+    };
+
+    /* Delete element112s
+     */
+    var deleteAll = function () {
+        switch (questionType) {
+            case 0:
+                if (header !== undefined) {
+                    header.remove();
+                    header = undefined;
+                }
+                if (code !== undefined) {
+                    code.remove();
+                    code = undefined;
+                }
+                for (var i = 0; i < dropdownList.length; i++) {
+                    /* Disable dropdown */
+                    dropdownList[i].dropdown.remove();
+                };
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+        };
     };
 
     /* Handles clicks to the submit button
@@ -406,7 +428,7 @@ var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdow
             dropdownList.push({"dropdown":codeDrop, "correct":correctAnswer});
         };
     };
-    return dropdownList;
+    return {"code" : codeWell, "dropdown" : dropdownList};
 };
 
 var createCode = function(questionType) {
