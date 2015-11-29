@@ -228,11 +228,14 @@ var main = function (ex) {
         code.clicked = false;
          
         code.draw = function(){
+        	console.log(code.width,code.height);
             code.well = ex.createCode(code.x,code.y,code.content,
                 {language:"python",
                  selectable:true,
-                  width:code.width,
-                  height:code.height}).on("click",function(){
+                 border:"none",
+                 width:code.width,
+                 height:code.height
+                }).on("click",function(){
                     code.clicked = true;
                     code.highlight();
                     if (code.left) {
@@ -245,12 +248,13 @@ var main = function (ex) {
                     }
                     currentIndentPrac.redrawCard();}
                     );
-            console.log(code.width,code.height);
+            ex.graphics.ctx.strokeStyle = "grey";
+            ex.graphics.ctx.strokeRect(code.x,code.y,code.width,code.height);
             if (code.clicked) code.highlight();
         }
         code.clear = function(){
             ex.graphics.ctx.clearRect(code.x-code.margin,code.y-code.margin,
-            	ex.width()/2,code.height+10);
+            	ex.width()/2,code.height+15);
             if (code.well != undefined){
                 code.well.remove();
             }
