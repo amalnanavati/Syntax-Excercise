@@ -1,6 +1,6 @@
 /* Syntax Excercise
- * Authors: Amal Nanavati, Ashley Wong, Emma Zhone
- * AndrewIDs: arnanava, 
+ * Authors: Amal Nanavati, Ashley Wong, Emma Zhong
+ * AndrewIDs: arnanava, ,jzhong1
  */
 
 /* runs the game
@@ -73,25 +73,62 @@ var main = function (ex) {
                 {language:"python",
                  selectable:true,
                   width:code.width
-                  height:code.height});
+                  height:code.height}).on("click",function(){
+                  	code.clicked = true;
+                  	code.highlight();
+                  	if (code.left) {
+                  		currentIndentPrac.clicked = 1;
+                  		currentIndentPrac.rightCard.clicked = false;
+                  	}
+                  	else {
+                  		currentIndentPrac.clicked = -1;
+                  		currentIndentPrac.leftCard.clicked = false;
+                  	}
+                  	currentIndentPrac.redrawCard();}
+                  	);
+            if (code.clicked) code.highlight();
         }
         code.clear = function(){
+        	ex.graphics.ctx.clearRect(code.x,code.y,code.width,code.height);
             if (code.well != undefined){
                 code.well.remove();
             }
         }
-        code.onClick = function(){
+        code.highlight = function(){
             ex.graphics.ctx.strokeStyle = "red";
             ex.graphics.ctx.strokeRect(code.x,code.y,code.width,code.height);
         }
+        return code;
     }
 
-    function IndentPrac(leftCode,rightCode,question,ra){
+    function IndentPrac(leftCode,rightCode,question,ca){
         var q = {}
         q.leftCard = CodeCard(true,leftCode);
         q.rightCard = CodeCard(false,rightCode);
         q.question = question;
-        q.ra = ra;
+        q.ca = ca;
+        q.clicked = 0;
+        q.x = 
+        q.drawQuestion = function(){
+        	ex.createParagraph(q.x,q.y,
+        		"Click on the code that correctly"+q.question);
+        }
+        q.draw = function(){
+        	q.leftCard.draw();
+        	q.rightCard.draw();
+        	q.drawQuestion();
+        }
+        q.redrawCard = function(){
+        	if (q.clicked == 1){
+        		q.rightCard.clear();
+        		q.rightCard.draw();
+        	}
+        	else if (q.clicked == -1){
+        		q.leftCard.clear();
+        		q.leftCard.draw();
+        	}
+        }
+        return q;
     }
     
     showQuestion();
