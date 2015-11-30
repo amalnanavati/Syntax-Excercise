@@ -419,7 +419,8 @@ var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdow
             };
 
             /* Create the dropdown */
-            var codeDrop = ex.createDropdown(0,0,defaultStr,{elements: elements});
+            //var codeDrop = ex.createDropdown(0,0,defaultStr,{elements: elements});
+            var codeDrop = ex.createButton(0,0,defaultStr);
 
             /* Insert the dropdown into the codeWell */
             ex.insertDropdown(codeWell, substring, codeDrop);
@@ -436,12 +437,12 @@ var createCode = function(questionType) {
         case 0:
             var arithmeticOperators = {"+" : "_1 added to _2", "*" : "_1 multiplied by _2", "-" : "_1 minus _2", "/" : "_1 divided by _2"};
             var logicOperators = {"and" : "and", "or" : "or"};
+            var ifBody = {"(_1 % _2) == 0"  : "if _1 is divisible by _2", "_1 <= _2" : "if _1 is less-than-or-equal-to _2", "_1 == _2" : "if _1 is equal to _2"}
             var variableNames = ["x", "y", "z", "n", "i"];
             var functionNames = ["f", "g", "h"];
 
             var typeOfQuestion = 1;
 
-            /* Question 1 */
             switch (typeOfQuestion) {
                 case 1:
                     var num = String(getRandomInt(1, 15));
@@ -536,6 +537,61 @@ var createCode = function(questionType) {
                     var descr = "Write a function that takes in an integer, ".concat(variable).concat(", and ").concat(returnStr).concat(" ").concat(operatorString).concat(".");
                     return {"code" : code, "dropdownInfo" : dropdownInfo, "descr" : descr};
                     break;
+                case 2:
+                    var num1 = String(getRandomInt(1, 15));
+                    var num2 = String(getRandomInt(1, 15));
+                    var operator1 = getRandomKey(arithmeticOperators);
+                    var operator2 = getRandomKey(arithmeticOperators);
+                    var variable1 = variableNames[getRandomInt(0, variableNames.length-1)];
+                    var variable2 = variableNames[getRandomInt(0, variableNames.length-1)];
+                    while (variable2 == variable1) variable2 = variableNames[getRandomInt(0, variableNames.length-1)];
+                    var functionName = functionNames[getRandomInt(0, functionNames.length-1)];
+                    var ifBody1 = ifBody[getRandomInt(0, ifBody.length-1)];
+                    var ifBody2 = ifBody[getRandomInt(0, ifBody.length-1)];
+                    var logicalOperator = logicOperators[getRandomInt(0, logicOperators.length-1)];
+                    var print1 = getRandomInt(0, 1);
+                    var print2 = getRandomInt(0, 1);
+
+                    var correct1 = "if (";
+                    var correct2 = ifBody1.replace("_1", variable1).replace("_2", num1);
+                    var correct3 = logicalOperator;
+                    var correct4 = ifBody2.replace("_1", variable2).replace("_2", num2);
+                    var correct5 = "):";
+                    var correct6 = "return ";
+                    if (print1 == 1) correct6 = "print(";
+                    var correct7 = variable1.concat(operator1).concat(variable2);
+                    if (print1 == 1) correct7 = correct7.concat(")");
+                    var correct8 = "else:";
+                    var correct9 = "return ";
+                    if (print1 == 1) correct9 = "print(";
+                    var correct10 = variable1.concat(operator2).concat(variable2);
+                    if (print1 == 1) correct10 = correct10.concat(")");
+
+                    /* Sample target code:
+                     *var targetCode = "def f(x, y):\n    if ((x%2) == 0 and y < 5):\n        return x+y\n    else:\n        return x-y";
+                     */
+                    var code = "def ".concat(functionName).concat("(").concat(variable1).concat(", ").concat(variable2).concat("):\n    ");
+                    code = code.concat("<span>'_1'</span><span>'_2'</span> <span>'_3'</span> <span>'_4'</span><span>'_5'</span>\n        <span>'_6'</span><span>'_7'</span>\n    <span>'_8'</span>\n        <span>'_9'</span><span>'_10'</span>");
+                    
+                    //Limit number of dropdowns (i.e. don't have 10)
+                    var numOfDropdowns = getRandomInt(3, 5);
+                    var i = 0;
+                    while (i < numOfDropdowns) {
+                        var seed = String(getRandomInt(1, 10))
+                        var substring = "<span>'_".concat(seed).concat("'</span>");
+                        if (code.indexOf(substring) > -1) {
+                            code.replace(substring, eval("correct".concat(seed)));
+                            i++;
+                        };
+                    };
+
+                    //Create Dropdown info
+
+                    //Create function description
+
+                    return {"code" : code, "dropdownInfo" : dropdownInfo, "descr" : descr};
+                    break;
+
             }
             break;
         case 1:
