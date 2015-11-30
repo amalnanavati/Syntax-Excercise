@@ -33,6 +33,7 @@ var main = function (ex) {
                     +"    if n%4 == 0:\n"
                     +"        result = True\n"
                     +"    return result";
+
     var rightCode1 = "def isMultipleOfFourRight(n):\n"
                     +"    result = False\n"
                     +"    if n%4 == 0:\n"
@@ -46,6 +47,7 @@ var main = function (ex) {
                     +"            if (i % j == 0): break\n"
                     +"            j = j + 1\n"
                     +"        if (j > i/j) : print i";
+
     var rightCode2 = "def printPrimesRight(n):\n"
     				+"    for i in range(2,n):\n"
                     +"        j = 2\n"
@@ -137,9 +139,12 @@ var main = function (ex) {
             isCorrectAnswerBeingDisplayed = false;
             questionNum++;
             deleteAll();
-            if (questionType == 2) {
-            	if (currentIndex+1 < type2List.length)currentIndex++;
-            	currentIndentPrac = type2List[currentIndex];
+            //if (questionType == 2) {
+            //	if (currentIndex+1 < type2List.length)currentIndex++;
+            //	currentIndentPrac = type2List[currentIndex];
+            //}
+            if (questionType == 2){
+            	currentIndentPrac = createCode(2);
             }
             questionType = 2;
             /* USE THIS SPACE TO CHANGE QUESTION TYPE OR TO CHECK IF YOU HAVE 
@@ -245,30 +250,30 @@ var main = function (ex) {
     }
 
     function CodeCard(left,content){
-        var code = {};
-        code.margin = 10;
-        code.left = left;
-        if (code.left) code.x = code.margin;
-        else code.x = code.margin + ex.width()/2;
-        code.y = 10;
-        code.width = ex.width()/2 - code.margin*2;
-        code.height = ex.height()*2/3;
-        code.content = content;
-        code.well = undefined;
-        code.clicked = false;
+        var code2 = {};
+        code2.margin = 10;
+        code2.left = left;
+        if (code2.left) code2.x = code2.margin;
+        else code2.x = code2.margin + ex.width()/2;
+        code2.y = 10;
+        code2.width = ex.width()/2 - code2.margin*2;
+        code2.height = ex.height()*2/3;
+        code2.content = content;
+        code2.well = undefined;
+        code2.clicked = false;
          
-        code.draw = function(){
-        	console.log(code.width,code.height);
-            code.well = ex.createCode(code.x,code.y,code.content,
+        code2.draw = function(){
+        	//console.log(code2.width,code2.height);
+            code2.well = ex.createCode(code2.x,code2.y,code2.content,
                 {language:"python",
                  selectable:true,
                  border:"none",
-                 width:code.width,
-                 height:code.height
+                 width:code2.width,
+                 height:code2.height
                 }).on("click",function(){
-                    code.clicked = true;
-                    code.highlight();
-                    if (code.left) {
+                    code2.clicked = true;
+                    code2.highlight();
+                    if (code2.left) {
                         currentIndentPrac.clicked = 1;
                         currentIndentPrac.rightCard.clicked = false;
                     }
@@ -279,21 +284,21 @@ var main = function (ex) {
                     currentIndentPrac.redrawCard();}
                     );
             ex.graphics.ctx.strokeStyle = "grey";
-            ex.graphics.ctx.strokeRect(code.x,code.y,code.width,code.height);
-            if (code.clicked) code.highlight();
+            ex.graphics.ctx.strokeRect(code2.x,code2.y,code2.width,code2.height);
+            if (code2.clicked) code2.highlight();
         }
-        code.clear = function(){
-            ex.graphics.ctx.clearRect(code.x-code.margin,code.y-code.margin,
-            	ex.width()/2,code.height+15);
-            if (code.well != undefined){
-                code.well.remove();
+        code2.clear = function(){
+            ex.graphics.ctx.clearRect(code2.x-code2.margin,code2.y-code2.margin,
+            	ex.width()/2,code2.height+15);
+            if (code2.well != undefined){
+                code2.well.remove();
             }
         }
-        code.highlight = function(){
+        code2.highlight = function(){
             ex.graphics.ctx.strokeStyle = "red";
-            ex.graphics.ctx.strokeRect(code.x-4,code.y-2,code.width+6,code.height+4);
+            ex.graphics.ctx.strokeRect(code2.x-4,code2.y-2,code2.width+6,code2.height+4);
         }
-        return code;
+        return code2;
     }
 
     function IndentPrac(leftCode,rightCode,question,ca){
