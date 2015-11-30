@@ -39,11 +39,28 @@ var main = function (ex) {
                     +"        result = True\n"
                     +"        return result";
 
+    var leftCode2 =  "def printPrimesLeft(n):\n"
+    				+"    for i in range(2,n):\n"
+                    +"        j = 2\n"
+                    +"        while(j <= (i/j)):\n"
+                    +"            if (i % j == 0): break\n"
+                    +"            j = j + 1\n"
+                    +"        if (j > i/j) : print i";
+    var rightCode2 = "def printPrimesRight(n):\n"
+    				+"    for i in range(2,n):\n"
+                    +"        j = 2\n"
+                    +"    while(j <= (i/j)):\n"
+                    +"        if (i % j == 0): break\n"
+                    +"        j = j + 1\n"
+                    +"    if (j > i/j) : print i";
+
     var type2List = [IndentPrac(leftCode1,rightCode1,
-    	"calculates if an integer is a multiple of 4",1)];
+    	"calculates if an integer is a multiple of 4",1),
+    				 IndentPrac(leftCode2,rightCode2,
+    	"print all the prime numbers up to n",1)];
 
     var currentIndentPrac = type2List[0];
-
+    var currentIndex = 0;
     /* Shows the appropriate question type
      */
     var showQuestion = function () {
@@ -119,11 +136,16 @@ var main = function (ex) {
         nextButton.on("click", function () {
             isCorrectAnswerBeingDisplayed = false;
             questionNum++;
-            questionType = 0;
+            deleteAll();
+            if (questionType == 2) {
+            	if (currentIndex+1 < type2List.length)currentIndex++;
+            	currentIndentPrac = type2List[currentIndex];
+            }
+            questionType = 2;
             /* USE THIS SPACE TO CHANGE QUESTION TYPE OR TO CHECK IF YOU HAVE 
              * REACHED THE MAX NUMBER OF QUESTIONS! 
              */
-            deleteAll();
+            
             showQuestion();
             nextButton.remove();
             /* Disable Display CA Button */
@@ -152,7 +174,7 @@ var main = function (ex) {
             case 1:
                 break;
             case 2:
-                break;
+                currentIndentPrac.clear();
         };
     };
 
