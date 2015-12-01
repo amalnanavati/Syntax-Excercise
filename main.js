@@ -140,14 +140,13 @@ var main = function (ex) {
                 data.isCorrectAnswerBeingDisplayed = isCorrectAnswerBeingDisplayed;
                 data.oldAnswers = oldAnswers;
                 data.dropdownDefaults = [];
-                //Save dropdown selected text, extract it from the html
-                var string1 = 'data-toggle="dropdown">';
-                var string2 = ' <span class="caret">';
+
+                //Save dropdown selected text index, extract it from the html
                 for (var i = 0; i < dropdownList.length; i++) {
-                    var currText = dropdownList[i].dropdown.text();
-                    currText = currText.slice(currText.indexOf(string1)+string1.length, currText.indexOf(string2));
-                    data.dropdownDefaults.push(currText);
+                    var label = dropdownToDefaultLabel(dropdownList[i].dropdown);
+                    data.dropdownDefaults.push(label);
                 };
+                console.log(data.dropdownDefaults);
                 break;
             case 1:
             	break;
@@ -167,7 +166,6 @@ var main = function (ex) {
     };
 
     var loadData = function () {
-    	console.log("yo");
         console.log(ex.data.instance.state);
         if (ex.data.instance.state != null && ex.data.instance.state != undefined && typeof(ex.data.instance.state) == "object" && Object.keys(ex.data.instance.state).length > 0) {
             questionType = ex.data.instance.state.questionType;
@@ -175,6 +173,12 @@ var main = function (ex) {
             totalNumOfQs = ex.data.instance.state.totalNumOfQs;
             score = ex.data.instance.state.score;
             totalPossibleScore = ex.data.instance.state.totalPossibleScore;
+            // If quiz mode, write which question you are on
+            if (ex.data.meta.mode == "quiz-immediate") {
+                var title = "Question ".concat(String(questionNum)).concat(" of ").concat(String(totalNumOfQs));
+                if (ex.chromeElements.titleHeader === undefined) ex.setTitle(title);
+                else ex.chromeElements.titleHeader.text(title)
+            };
             switch (questionType) {
                 case 0:
                     if (ex.data.instance.state.isCorrectAnswerBeingDisplayed !== undefined) {
@@ -243,9 +247,14 @@ var main = function (ex) {
                 for (var i = 0; i < dropdownList.length; i++) {
                     var currText = dropdownList[i].dropdown.text();
                     currText = currText.slice(0, currText.indexOf('<span class="caret">'));
+                    currText = decodeHTMLEntities(currText);
                     console.log(currText);
+                    console.log(dropdownList[i].correct);
                     if (currText.indexOf(dropdownList[i].correct) > -1) {
                         numOfCorrectDropdowns = numOfCorrectDropdowns + 1;
+                        dropdownList[i].dropdown.style({color: "green"});
+                    } else {
+                        dropdownList[i].dropdown.style({color: "red"});
                     };
                     /* Disable dropdown */
                     dropdownList[i].dropdown.disable();
@@ -287,7 +296,7 @@ var main = function (ex) {
     				vars.question,vars.ca);
 
             }
-            questionType = 2;//(questionType+1)%3;
+            questionType = (((questionType/2)+1)%2)*2;//(questionType+1)%3;
             if (ex.data.meta.mode == "quiz-immediate") {
                 questionNum++;
                 if (questionNum > totalNumOfQs) {
@@ -311,7 +320,7 @@ var main = function (ex) {
      */
     var endOfExcercise = function () {
         var percent = score/totalPossibleScore;
-        var feedback = "You got ".concat(String(score)).concat(" out of ").concat(String(totalPossibleScore)).concat("points.\n ").concat(String(percent*100)).concat("%");
+        var feedback = "You got ".concat(String(score)).concat(" out of ").concat(String(totalPossibleScore)).concat(" points.\n ").concat(String(percent*100)).concat("%");
         ex.showFeedback(feedback);
         ex.setGrade(percent, feedback);
     }
@@ -575,7 +584,7 @@ var getFailureFn = function (ex, feedback, saveData) {
  * that dropdown.
  */
 var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdownInfo, showFeedbackIfCorrect, showFeedbackIfWrong, randomDefault, saveData) {
-    
+
     /* Create the code well */
     var codeWell = ex.createCode(x, y, code, {size:"large", width:width, height:height});
 
@@ -640,7 +649,7 @@ var createCode = function(questionType) {
             var arithmeticOperators = {"+" : "_1 added to _2", "*" : "_1 multiplied by _2", "-" : "_1 minus _2", "/" : "_1 divided by _2"};
             var logicOperators = {"and" : "and", "or" : "or"};
 
-            var ifBody = {"(_1 % _2) == 0"  : "if _1 is divisible by _2", "_1 <= _2" : "if _1 is less-than-or-equal-to _2", "_1 == _2" : "if _1 is equal to _2"};
+            var ifBody = {"(_1 % _2) == 0"  : "_1 is divisible by _2", "_1 <= _2" : "_1 is less-than-or-equal-to _2", "_1 == _2" : "_1 is equal to _2"};
             var variableNames = ["x", "y", "z", "n", "i"];
             var functionNames = ["f", "g", "h"];
 
@@ -1044,6 +1053,7 @@ var createCode = function(questionType) {
             				"question":prompt,
             				"ca":correct_index};
             }
+            break;
     };
 }
 
@@ -1060,4 +1070,37 @@ var getRandomKey = function (obj) {
         i++;
     }
 }
+
+var dropdownToListOfOptions = function (dropdown) {
+    var text = dropdown.text();
+    var begin = "<li><a>";
+    var end = "</a></li>";
+    var list = [];
+    while (text.indexOf(begin) > -1) {
+        text = text.slice(text.indexOf(begin)+begin.length);
+        var option = text.slice(0, text.indexOf(end));
+        list.push(option);
+    };
+    return list;
+};
+
+var dropdownToDefaultLabel = function (dropdown) {
+    //Label is the text after the first > and before the next <
+    var begin = '>';
+    var end = '<';
+    var currText = dropdown.text();
+    console.log(currText);
+    currText = currText.slice(currText.indexOf(begin)+begin.length, currText.indexOf(end, currText.indexOf(begin)));
+    console.log(currText);
+    return currText;
+};
+
+var decodeHTMLEntities = function (text) {
+    var entities = {"&lt;" : "<",
+                    "&gt;" : ">"};
+    for (var key in entities) {
+        text = text.replace(key, entities[key]);
+    };
+    return text;
+};
 
