@@ -61,9 +61,11 @@ var main = function (ex) {
     				 IndentPrac(leftCode2,rightCode2,
     	"print all the prime numbers up to n",1)];
 
-    var currentIndentPrac = type2List[0];
+    var vars = createCode(2);
+    var currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
+    	vars.question,vars.ca);
     var currentIndex = 0;
-    /* Shows the appropriate question type
+        /* Shows the appropriate question type
      */
     var showQuestion = function () {
         switch (questionType) {
@@ -144,7 +146,9 @@ var main = function (ex) {
             //	currentIndentPrac = type2List[currentIndex];
             //}
             if (questionType == 2){
-            	currentIndentPrac = createCode(2);
+               	var vars = createCode(2);
+    			currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
+    				vars.question,vars.ca);
             }
             questionType = 2;
             /* USE THIS SPACE TO CHANGE QUESTION TYPE OR TO CHECK IF YOU HAVE 
@@ -460,13 +464,14 @@ var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdow
 };
 
 var createCode = function(questionType) {
+	var variableNames = ["x", "y", "z", "n", "i"];
+    var functionNames = ["f", "g", "h"];
     switch (questionType) {
         case 0:
             var arithmeticOperators = {"+" : "_1 added to _2", "*" : "_1 multiplied by _2", "-" : "_1 minus _2", "/" : "_1 divided by _2"};
             var logicOperators = {"and" : "and", "or" : "or"};
             var ifBody = {"(_1 % _2) == 0"  : "if _1 is divisible by _2", "_1 <= _2" : "if _1 is less-than-or-equal-to _2", "_1 == _2" : "if _1 is equal to _2"}
-            var variableNames = ["x", "y", "z", "n", "i"];
-            var functionNames = ["f", "g", "h"];
+            
 
             var typeOfQuestion = 1;
 
@@ -624,7 +629,78 @@ var createCode = function(questionType) {
         case 1:
             break;
         case 2:
-            break;
+            var q2type = getRandomInt(0,1);
+            var temp = getRandomInt(0,1);
+            var correct_index = 1;
+            var left;
+            var right;
+            var prompt;
+
+            if (temp) correct_index = -1;
+            var fun1 = functionNames[getRandomInt(0, functionNames.length-1)];
+            var fun2 = functionNames[getRandomInt(0, functionNames.length-1)];
+            while (fun2 == fun1) fun2 = functionNames[getRandomInt(0, functionNames.length-1)];
+            switch(q2type){
+            	case 0:
+            	    var const1 = String(getRandomInt(0,10));
+            	    var const2 = String(getRandomInt(1,5)); 
+            		var var1 = variableNames[getRandomInt(0, variableNames.length-1)];
+                    var var2 = variableNames[getRandomInt(0, variableNames.length-1)];
+                    while (var2 == var1) var2 = variableNames[getRandomInt(0, variableNames.length-1)];
+            		var correctQ2 = "def "+fun1+"("+var1+"):\n"
+            					   +"    if "+var1+" < "+const1+"\n"
+            					   +"        "+var2+" = "+const2+"\n"
+            					   +"        return "+var2+" + "+var1+"\n" 
+            					   +"    return "+var1
+            	    var wrongQ2 =   "def "+fun2+"("+var1+"):\n"
+            					   +"    if "+var1+" < "+const1+"\n"
+            					   +"        "+var2+" = "+const2+"\n"
+            					   +"    return "+var2+" + "+var1+"\n" 
+            					   +"    return "+var1
+            		if (correct_index == 1){
+            			left = correctQ2;
+            			right = wrongQ2;
+            		}
+            		else{
+            			right = correctQ2;
+            			left = wrongQ2;
+            		}
+            		prompt = "adds "+const2+
+            		      " to an integer if it is less than "+const1;
+            		console.log(left);
+            		return {"leftCode":left,
+            				"rightCode":right,
+            				"question":prompt,
+            				"ca":correct_index};
+            	case 1:
+            		var constant = String(getRandomInt(2,7));
+            		var vari = variableNames[getRandomInt(0, variableNames.length-1)];
+            		var correctQ2 = "def "+fun1+"("+vari+"):\n"
+            					   +"    result = False\n"
+            					   +"    if "+vari+" % "+constant+" == 0:\n"
+            					   +"        result = True\n"
+            					   +"    return result"	;
+
+            	    var wrongQ2 =   "def "+fun1+"("+vari+"):\n"
+            					   +"    result = False\n"
+            					   +"    if "+vari+" % "+constant+" == 0:\n"
+            					   +"        result = True\n"
+            					   +"    	 return result"	;
+            		if (correct_index == 1){
+            			left = correctQ2;
+            			right = wrongQ2;
+            		}
+            		else{
+            			right = correctQ2;
+            			left = wrongQ2;
+            		}
+            		prompt = "calculates if an integer is a multiple of "+constant;
+            		console.log(left);
+            		return {"leftCode":left,
+            				"rightCode":right,
+            				"question":prompt,
+            				"ca":correct_index};
+            }
     };
 }
 
