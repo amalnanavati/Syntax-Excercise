@@ -536,8 +536,8 @@ var main = function (ex) {
                     stay: true,
                     color:"red"
             });*/
-        	totalPossibleScore += 1;
-        	if (q.clicked == ca) score += 1;
+        	totalPossibleScore += 4;
+        	if (q.clicked == ca) score += 4;
         }
         return q;
     }
