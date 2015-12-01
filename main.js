@@ -8,7 +8,7 @@
 var main = function (ex) {
 
     //ex.data.meta.mode = "practice";
-    ex.data.instance.state = {};
+    //ex.data.instance.state = {};
 
     /* 0 = code with dropdown
      * 1 = code with click-the-error
