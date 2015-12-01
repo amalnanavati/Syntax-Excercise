@@ -73,9 +73,12 @@ var main = function (ex) {
     				 IndentPrac(leftCode2,rightCode2,
     	"print all the prime numbers up to n",1)];
 
-    var currentIndentPrac = type2List[0];
+    var vars = createCode(2);
+    var currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
+    	vars.question,vars.ca);
+    //saveData();
     var currentIndex = 0;
-    /* Shows the appropriate question type
+        /* Shows the appropriate question type
      */
     var showQuestion = function () {
         // If quiz mode, write which question you are on
@@ -84,7 +87,7 @@ var main = function (ex) {
             if (ex.chromeElements.titleHeader === undefined) ex.setTitle(title);
             else ex.chromeElements.titleHeader.text(title)
         };
-
+    	console.log("show question");
         switch (questionType) {
             case 0:
                 /* Create the code well */
@@ -114,7 +117,9 @@ var main = function (ex) {
             case 2:
                 /* delete and draw */
                 ex.graphics.ctx.clearRect(0,0,ex.width(),ex.height());
+                console.log("here");
                 currentIndentPrac.draw();
+                saveData();
         };
     };
 
@@ -145,14 +150,24 @@ var main = function (ex) {
                 };
                 break;
             case 1:
-                break;
+            	break;
             case 2:
+               	data.question2LeftCode = currentIndentPrac.leftCode;
+                data.question2RightCode = currentIndentPrac.rightCode;
+                data.question2Question = currentIndentPrac.question;
+                data.question2Ca = currentIndentPrac.ca;
+                data.question2Clicked = currentIndentPrac.clicked;
+                console.log(data.question2LeftCode);
+
                 
         };
+
         ex.saveState(data);
+        console.log(ex.data.instance.state);
     };
 
     var loadData = function () {
+    	console.log("yo");
         console.log(ex.data.instance.state);
         if (ex.data.instance.state != null && ex.data.instance.state != undefined && typeof(ex.data.instance.state) == "object" && Object.keys(ex.data.instance.state).length > 0) {
             questionType = ex.data.instance.state.questionType;
@@ -194,7 +209,19 @@ var main = function (ex) {
                 case 1:
                     break;
                 case 2:
-                    
+
+                	var left = ex.data.instance.state.question2LeftCode;
+                	var right = ex.data.instance.state.question2RightCode;
+                	var q = ex.data.instance.state.question2Question;
+                	var ca = ex.data.instance.state.question2Ca;
+                	currentIndentPrac = IndentPrac(left,right,q,ca);
+                	currentIndentPrac.clicked = ex.data.instance.state.question2Clicked;
+                	if (currentIndentPrac.clicked == 1){
+                		currentIndentPrac.leftCard.clicked = true;
+                	}
+                	else if (currentIndentPrac.clicked == -1){
+                		currentIndentPrac.rightCard.clicked = true;
+                	}               
             };
             return true;
         };
@@ -236,6 +263,7 @@ var main = function (ex) {
             case 1:
                 break;
             case 2:
+            	currentIndentPrac.submit();
                 
         };
         /* Create the next button */
@@ -253,9 +281,13 @@ var main = function (ex) {
             //  currentIndentPrac = type2List[currentIndex];
             //}
             if (questionType == 2){
-                currentIndentPrac = createCode(2);
+
+               	var vars = createCode(2);
+    			currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
+    				vars.question,vars.ca);
+
             }
-            questionType = 0;//(questionType+1)%3;
+            questionType = 2;//(questionType+1)%3;
             if (ex.data.meta.mode == "quiz-immediate") {
                 questionNum++;
                 if (questionNum > totalNumOfQs) {
@@ -386,6 +418,7 @@ var main = function (ex) {
     var run = function () {
         setUp();
         if (!(loadData())) showQuestion();
+        if (questionType == 2) showQuestion();
     }
 
     function CodeCard(left,content){
@@ -420,6 +453,7 @@ var main = function (ex) {
                         currentIndentPrac.clicked = -1;
                         currentIndentPrac.leftCard.clicked = false;
                     }
+                    saveData();
                     currentIndentPrac.redrawCard();}
                     );
             ex.graphics.ctx.strokeStyle = "grey";
@@ -450,6 +484,8 @@ var main = function (ex) {
         q.textPara = undefined;
         q.x = 20;
         q.y = ex.height()*3/4;
+        q.leftCode = leftCode;
+        q.rightCode = rightCode;
         
         q.drawQuestion = function(){
             q.textPara = ex.createParagraph(q.x,q.y,
@@ -479,15 +515,7 @@ var main = function (ex) {
 
         }
         q.submit = function(){
-        	if (q.clicked == 0){
-        		ex.alert("Please select a choice!",{
-                    fontSize: 20,
-                    stay: true,
-                    color:"yellow"
-            });
-        	}
-        	else {
-        		if (q.clicked == ca){
+        	/*if (q.clicked == ca){
         			ex.alert("Correct!",{
                     fontSize: 20,
                     stay: true,
@@ -498,8 +526,9 @@ var main = function (ex) {
                     fontSize: 20,
                     stay: true,
                     color:"red"
-            });
-        	}
+            });*/
+        	totalPossibleScore += 1;
+        	if (q.clicked == ca) score += 1;
         }
         return q;
     }
@@ -605,13 +634,16 @@ var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdow
 };
 
 var createCode = function(questionType) {
+	
     switch (questionType) {
         case 0:
             var arithmeticOperators = {"+" : "_1 added to _2", "*" : "_1 multiplied by _2", "-" : "_1 minus _2", "/" : "_1 divided by _2"};
             var logicOperators = {"and" : "and", "or" : "or"};
-            var ifBody = {"(_1 % _2) == 0"  : "_1 is divisible by _2", "_1 <= _2" : "_1 is less-than-or-equal-to _2", "_1 == _2" : "_1 is equal to _2"}
+
+            var ifBody = {"(_1 % _2) == 0"  : "if _1 is divisible by _2", "_1 <= _2" : "if _1 is less-than-or-equal-to _2", "_1 == _2" : "if _1 is equal to _2"};
             var variableNames = ["x", "y", "z", "n", "i"];
             var functionNames = ["f", "g", "h"];
+
 
             var typeOfQuestion = getRandomInt(1, 2);
 
@@ -938,7 +970,80 @@ var createCode = function(questionType) {
         case 1:
             break;
         case 2:
-            break;
+        	var variableNames = ["x", "y", "z", "n", "i"];
+    		var functionNames = ["f", "g", "h"];
+            var q2type = getRandomInt(0,1);
+            var temp = getRandomInt(0,1);
+            var correct_index = 1;
+            var left;
+            var right;
+            var prompt;
+
+            if (temp) correct_index = -1;
+            var fun1 = functionNames[getRandomInt(0, functionNames.length-1)];
+            var fun2 = functionNames[getRandomInt(0, functionNames.length-1)];
+            while (fun2 == fun1) fun2 = functionNames[getRandomInt(0, functionNames.length-1)];
+            switch(q2type){
+            	case 0:
+            	    var const1 = String(getRandomInt(0,10));
+            	    var const2 = String(getRandomInt(1,5)); 
+            		var var1 = variableNames[getRandomInt(0, variableNames.length-1)];
+                    var var2 = variableNames[getRandomInt(0, variableNames.length-1)];
+                    while (var2 == var1) var2 = variableNames[getRandomInt(0, variableNames.length-1)];
+            		var correctQ2 = "def "+fun1+"("+var1+"):\n"
+            					   +"    if "+var1+" < "+const1+"\n"
+            					   +"        "+var2+" = "+const2+"\n"
+            					   +"        return "+var2+" + "+var1+"\n" 
+            					   +"    return "+var1
+            	    var wrongQ2 =   "def "+fun2+"("+var1+"):\n"
+            					   +"    if "+var1+" < "+const1+"\n"
+            					   +"        "+var2+" = "+const2+"\n"
+            					   +"    return "+var2+" + "+var1+"\n" 
+            					   +"    return "+var1
+            		if (correct_index == 1){
+            			left = correctQ2;
+            			right = wrongQ2;
+            		}
+            		else{
+            			right = correctQ2;
+            			left = wrongQ2;
+            		}
+            		prompt = "adds "+const2+
+            		      " to an integer if it is less than "+const1;
+            		console.log(left);
+            		return {"leftCode":left,
+            				"rightCode":right,
+            				"question":prompt,
+            				"ca":correct_index};
+            	case 1:
+            		var constant = String(getRandomInt(2,7));
+            		var vari = variableNames[getRandomInt(0, variableNames.length-1)];
+            		var correctQ2 = "def "+fun1+"("+vari+"):\n"
+            					   +"    result = False\n"
+            					   +"    if "+vari+" % "+constant+" == 0:\n"
+            					   +"        result = True\n"
+            					   +"    return result"	;
+
+            	    var wrongQ2 =   "def "+fun1+"("+vari+"):\n"
+            					   +"    result = False\n"
+            					   +"    if "+vari+" % "+constant+" == 0:\n"
+            					   +"        result = True\n"
+            					   +"    	return result"	;
+            		if (correct_index == 1){
+            			left = correctQ2;
+            			right = wrongQ2;
+            		}
+            		else{
+            			right = correctQ2;
+            			left = wrongQ2;
+            		}
+            		prompt = "calculates if an integer is a multiple of "+constant;
+            		console.log(left);
+            		return {"leftCode":left,
+            				"rightCode":right,
+            				"question":prompt,
+            				"ca":correct_index};
+            }
     };
 }
 
