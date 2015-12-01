@@ -76,6 +76,7 @@ var main = function (ex) {
     var vars = createCode(2);
     var currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
     	vars.question,vars.ca);
+    //saveData();
     var currentIndex = 0;
         /* Shows the appropriate question type
      */
@@ -86,7 +87,7 @@ var main = function (ex) {
             if (ex.chromeElements.titleHeader === undefined) ex.setTitle(title);
             else ex.chromeElements.titleHeader.text(title)
         };
-
+    	console.log("show question");
         switch (questionType) {
             case 0:
                 /* Create the code well */
@@ -116,7 +117,9 @@ var main = function (ex) {
             case 2:
                 /* delete and draw */
                 ex.graphics.ctx.clearRect(0,0,ex.width(),ex.height());
+                console.log("here");
                 currentIndentPrac.draw();
+                saveData();
         };
     };
 
@@ -147,14 +150,24 @@ var main = function (ex) {
                 };
                 break;
             case 1:
-                break;
+            	break;
             case 2:
+               	data.question2LeftCode = currentIndentPrac.leftCode;
+                data.question2RightCode = currentIndentPrac.rightCode;
+                data.question2Question = currentIndentPrac.question;
+                data.question2Ca = currentIndentPrac.ca;
+                data.question2Clicked = currentIndentPrac.clicked;
+                console.log(data.question2LeftCode);
+
                 
         };
+
         ex.saveState(data);
+        console.log(ex.data.instance.state);
     };
 
     var loadData = function () {
+    	console.log("yo");
         console.log(ex.data.instance.state);
         if (ex.data.instance.state != null && ex.data.instance.state != undefined && typeof(ex.data.instance.state) == "object" && Object.keys(ex.data.instance.state).length > 0) {
             questionType = ex.data.instance.state.questionType;
@@ -196,7 +209,19 @@ var main = function (ex) {
                 case 1:
                     break;
                 case 2:
-                    
+
+                	var left = ex.data.instance.state.question2LeftCode;
+                	var right = ex.data.instance.state.question2RightCode;
+                	var q = ex.data.instance.state.question2Question;
+                	var ca = ex.data.instance.state.question2Ca;
+                	currentIndentPrac = IndentPrac(left,right,q,ca);
+                	currentIndentPrac.clicked = ex.data.instance.state.question2Clicked;
+                	if (currentIndentPrac.clicked == 1){
+                		currentIndentPrac.leftCard.clicked = true;
+                	}
+                	else if (currentIndentPrac.clicked == -1){
+                		currentIndentPrac.rightCard.clicked = true;
+                	}               
             };
             return true;
         };
@@ -238,6 +263,7 @@ var main = function (ex) {
             case 1:
                 break;
             case 2:
+            	currentIndentPrac.submit();
                 
         };
         /* Create the next button */
@@ -261,7 +287,7 @@ var main = function (ex) {
     				vars.question,vars.ca);
 
             }
-            questionType = 0;//(questionType+1)%3;
+            questionType = 2;//(questionType+1)%3;
             if (ex.data.meta.mode == "quiz-immediate") {
                 questionNum++;
                 if (questionNum > totalNumOfQs) {
@@ -392,6 +418,7 @@ var main = function (ex) {
     var run = function () {
         setUp();
         if (!(loadData())) showQuestion();
+        if (questionType == 2) showQuestion();
     }
 
     function CodeCard(left,content){
@@ -426,6 +453,7 @@ var main = function (ex) {
                         currentIndentPrac.clicked = -1;
                         currentIndentPrac.leftCard.clicked = false;
                     }
+                    saveData();
                     currentIndentPrac.redrawCard();}
                     );
             ex.graphics.ctx.strokeStyle = "grey";
@@ -456,6 +484,8 @@ var main = function (ex) {
         q.textPara = undefined;
         q.x = 20;
         q.y = ex.height()*3/4;
+        q.leftCode = leftCode;
+        q.rightCode = rightCode;
         
         q.drawQuestion = function(){
             q.textPara = ex.createParagraph(q.x,q.y,
@@ -485,15 +515,7 @@ var main = function (ex) {
 
         }
         q.submit = function(){
-        	if (q.clicked == 0){
-        		ex.alert("Please select a choice!",{
-                    fontSize: 20,
-                    stay: true,
-                    color:"yellow"
-            });
-        	}
-        	else {
-        		if (q.clicked == ca){
+        	/*if (q.clicked == ca){
         			ex.alert("Correct!",{
                     fontSize: 20,
                     stay: true,
@@ -504,8 +526,9 @@ var main = function (ex) {
                     fontSize: 20,
                     stay: true,
                     color:"red"
-            });
-        	}
+            });*/
+        	totalPossibleScore += 1;
+        	if (q.clicked == ca) score += 1;
         }
         return q;
     }
@@ -1005,7 +1028,7 @@ var createCode = function(questionType) {
             					   +"    result = False\n"
             					   +"    if "+vari+" % "+constant+" == 0:\n"
             					   +"        result = True\n"
-            					   +"    	 return result"	;
+            					   +"    	return result"	;
             		if (correct_index == 1){
             			left = correctQ2;
             			right = wrongQ2;
