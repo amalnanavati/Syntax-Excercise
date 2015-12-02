@@ -1,6 +1,6 @@
 /* Syntax Excercise
  * Authors: Amal Nanavati, Ashley Wong, Emma Zhong
- * AndrewIDs: arnanava, ,jzhong1, ashleywo
+ * AndrewIDs: arnanava, jzhong1, ashleywo
  */
 
 /* runs the game
@@ -20,12 +20,14 @@ var main = function (ex) {
     var questionNum = 1;
     var totalNumOfQs = 9;
     
-    /* used in question type 1 */
+     /* used in question type 1 */
     var buttonList = undefined;
+    var buttonInfo = undefined;
     var buttonCode = undefined;
     var buttonCodeWell = undefined;
     var buttonHeader = undefined;
     var buttonDict = undefined;
+    var pressedButtons = [];
 
     /* Used in question type 0, this is a list of dropdowns and the correct 
      * answer for each dropdown, the code well, and the header
@@ -120,22 +122,41 @@ var main = function (ex) {
 
                 break;
             case 1:
-            	var x = 50;
-            	var y = 100;
-            	var margin = 50;
-            	var width = ex.width() - x - margin;
-            	var height = ex.height() - y - margin;
-            	var codeInfo = createCode(questiontype);
+            	var codeInfo = createCode(questionType);
             	buttonCode = codeInfo.code;
-            	var buttonInfo = codeInfo.buttonInfo;
+            	buttonInfo = codeInfo.buttonInfo;
             	var descr = codeInfo.descr;
             	buttonDict = codeInfo.buttonDict;
-            	var dict = clickableCodeWell(x, y, width, height, buttonCode, buttonInfo, buttonDict, true, true, true);
+                
+                buttonHeader = ex.createParagraph(0, 0, descr, {size : "xlarge", width : ex.width(), textAlign : "center"});
+                var margin = 50;
+            	var x = 50;
+            	var y = buttonHeader.height() + margin;
+            	var width = ex.width() - x - margin;
+            	var height = ex.height() - y - margin * 2;
+            	
+            	var showFeedback = (ex.data.meta.mode != "quiz-immediate");
+            	var dict = clickableCodeWell(x, y, width, height, buttonCode, buttonInfo, buttonDict, pressedButtons, showFeedback, showFeedback, true);
             	buttonList = dict["button"];
+            	console.log(buttonList);
             	buttonCode = dict["code"];
-
-            	buttonHeader = ex.createParagraph(0, 0, descr, {size : "xlarge", width : ex.width(), textAlign : "center"});
-
+            	
+            	for (var i = 0; i < buttonList.length; i++) {
+            	    if (buttonList[i]["correct"] == true) {
+            	        buttonList[i]["button"].on("click", function() {
+            	            pressedButtons.push(true)
+            	            this.disable();
+            	        });
+            	    }
+            	    else {
+            	        buttonList[i]["button"].on("click", function() {
+            	            pressedButtons.push(false)
+            	            this.disable();
+            	        });
+            	    }
+            	}
+            	
+                saveData();
                 break;
             case 2:
                 /* delete and draw */
@@ -312,17 +333,25 @@ var main = function (ex) {
                 //ex.chromeElements.displayCAButton.enable();
                 break;
             case 1:
+            	console.log(pressedButtons);
             	var numOfCorrectButtons = 0;
-            	var total = 9;
+            	var total = 0;
             	if (buttonList == undefined) {
             		throw "buttonList is undefined!";
             	}
-            	for (var i = 0; i < buttonList.length; i++) {
-            		if buttonList[i].correct {
+            	for (var j = 0; j < buttonList.length; j++) {
+            	    if (buttonList[j]["correct"] == true) {
+            	        total++;
+            	    }
+            	    buttonList[j]["button"].disable();
+            	}
+            	for (var i = 0; i < pressedButtons.length; i++) {
+            	    console.log(pressedButtons);
+            		if (pressedButtons[i] == true) {
             			numOfCorrectButtons++;
             		}
-            		buttonList[i].button.disable();
             	}
+            	pressedButtons = [];
             	score = score + numOfCorrectButtons;
             	totalPossibleScore = totalPossibleScore + total;
             	var beginning = "Congratulations! ";
@@ -406,17 +435,22 @@ var main = function (ex) {
                 dropdownList = undefined;
                 break;
             case 1:
-            	if (buttonHeader != undefined) {
+            	console.log("in button deleteall");
+            	if (buttonHeader !== undefined) {
+            	    console.log("remove buttonHeader");
             		buttonHeader.remove();
             		buttonHeader = undefined;
             	}
-            	if (buttonCodeWell != undefined) {
+            	if (buttonCodeWell !== undefined) {
+            	    console.log("removed buttonCodeWell");
             		buttonCodeWell.remove();
             		buttonCodeWell = undefined;
             	}
             	for (var i = 0; i < buttonList.length; i++) {
+            	    console.log("removed button ".concat(String(i)));
             		buttonList[i].button.remove();
             	}
+            	buttonList = undefined;
                 break;
             case 2:
                 currentIndentPrac.clear();
@@ -480,6 +514,14 @@ var main = function (ex) {
                 ex.chromeElements.newButton.on("click", function () {});
                 break;
             case 1:
+            	ex.chromeElements.submitButton.enable();
+                ex.chromeElements.submitButton.off("click");
+                ex.chromeElements.submitButton.on("click", submit);
+                ex.chromeElements.displayCAButton.disable();
+                ex.chromeElements.undoButton.disable();
+                ex.chromeElements.redoButton.disable();
+                ex.chromeElements.resetButton.disable();
+                ex.chromeElements.newButton.disable();
                 break;
             case 2:
                 ex.chromeElements.submitButton.enable();
@@ -613,6 +655,61 @@ var main = function (ex) {
         }
         return q;
     }
+
+	var clickableCodeWell = function(x, y, width, height, code, buttonInfo, buttonDict, showFeedbackIfCorrect, showFeedbackIfWrong, randomDefault) {
+    	/* Success and failure functions, which will be called when the user selects
+         * an option on the dropdown
+         */
+         
+        var getSuccessFn = function (feedback) {
+            return function () {
+                feedback = "Correct!  ".concat(feedback);
+                var message = ex.alert(feedback, {
+                        fontSize: 20,
+                        stay: true,
+                        color:"green"
+                });
+            };
+        };
+        var getFailureFn = function (feedback) {
+            return function () {
+                feedback = "Incorrect!  ".concat(feedback);
+                var message = ex.alert(feedback, {
+                        fontSize: 20,
+                        stay: true,
+                        color:"red"
+                });
+            };
+        };
+    
+        /* Create the code well */
+        var codeWell = ex.createCode(x, y, code, {size:"large", width:width, height:height});
+    
+        var buttonList = [];
+        for (var substring in buttonInfo) {
+        	var defaultStr = buttonDict[substring];
+        	var correct = buttonInfo[substring]["correct"];
+        	var feedback = undefined;
+        	if (correct) {
+        		if (showFeedbackIfCorrect) {
+        			feedback = buttonInfo[substring]["feedback"];
+        		}
+        	    getSuccessFn(buttonInfo[substring]["feedback"]);
+        	}
+        	else {
+        		if (showFeedbackIfWrong) {
+        			feedback = buttonInfo[substring]["feedback"];
+        		}
+        		getFailureFn(buttonInfo[substring]["feedback"]);
+        	}
+        	
+        	var codeButton = ex.createButton(0,0,defaultStr);
+        	ex.insertDropdown(codeWell, substring, codeButton);
+        	buttonList.push({"button" : codeButton, "correct" : buttonInfo[substring]["correct"]});
+        }
+        console.log(pressedButtons);
+        return {"code" : codeWell, "button" : buttonList};
+    };
 
     run();
     
@@ -1104,25 +1201,25 @@ var createCode = function(questionType) {
             }
             break;
         case 1:
-        	var infoNum = getRandomInt(0,1);
+        	var infoNum = 0; /*getRandomInt(0,1);*/
         	
         	/* def f(x)
         	      if x % 2 = 0
         	            return true;
         	       else
 					    return false */
-        	var ifCode = "<span>_1</span> <span>_2</span>(x)<span>_3</span>\n" +
-        				 "    if x <span>_4</span> 2 <span>_5</span> 0<span>_6</span>\n" +
-        				 "        return true<span>_7</span>\n" +
-        				 "    else<span>_8</span>\n" +
-        				 "        return false<span>_9</span>";
+        	var ifCode = "<span>'_1'</span> <span>'_2'</span>(x)<span>'_3'</span>\n" +
+        				 "    if x <span>'_4'</span> 2 <span>'_5'</span> 0<span>'_6'</span>\n" +
+        				 "        return true<span>'_7'</span>\n" +
+        				 "    else<span>'_8'</span>\n" +
+        				 "        return false<span>'_9'</span>";
         	var _1words = ["def", "function", "fun", "fn"];
         	var _1correct = "def";
         	var _1word = _1words[Math.floor(Math.random() * _1words.length)];
         	var _3words = [" ", ":", "{", ";"];
         	var _3correct = ":";
         	var _3word = _3words[Math.floor(Math.random() * _3words.length)];
-        	var _5words = ["==", "=", "is", "equals"];
+        	var _5words = ["==", "="];
         	var _5correct = "==";
         	var _5word = _5words[Math.floor(Math.random() * _5words.length)];
         	var _6words = [" ", ":", "{", ";"];
@@ -1217,7 +1314,7 @@ var createCode = function(questionType) {
         						"_6" : {}, "_7" : {}, "_8" : {}, "_9" : {}};
             var buttonInfo = {"_1" : {}, "_2" : {}, "_3" : {}, "_4" : {}, "_5" : {},
         						"_6" : {}, "_7" : {}, "_8" : {}, "_9" : {}};
-            if infoNum == 0 {
+            if (infoNum == 0) {
             	code = ifCode;
             	buttonDict = ifDict;
             	for (var substring in ifDict) {
