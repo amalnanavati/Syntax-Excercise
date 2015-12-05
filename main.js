@@ -1232,7 +1232,7 @@ var createCode = function(questionType) {
                             /* Sample target code:
                              *var targetCode = "def factorial(x):\n    product = 1\n    for i in xrange(1, x+1):\n        product *= i\n    return product";
                              */
-                            var code = "def factorial(".concat(variable1).concat("):\n    ".concat(variable1).concat("<span>'_1'</span>\n    <span>'_2'</span> ").concat(variable2).concat(" in xrange<span>'_3'</span>:\n        ").concat(variable1).concat(" <span>'_4'</span> ").concat(variable2).concat("\n    <span>'_5'</span>").concat(endVar);
+                            var code = "def factorial(".concat(variable1).concat("):\n    ").concat(variable1).concat("<span>'_1'</span>\n    <span>'_2'</span> ").concat(variable2).concat(" in xrange<span>'_3'</span>:\n        ").concat(variable1).concat(" <span>'_4'</span> ").concat(variable2).concat("\n    <span>'_5'</span>").concat(endVar);
 
                             //Limit number of dropdowns (i.e. don't have 5)
                             var numOfDropdowns = 4;
@@ -1348,7 +1348,7 @@ var createCode = function(questionType) {
                             /* Sample target code:
                              *var targetCode = "def log(x):\n    i = 0\n    while x > 1:\n        x /= 2\n        i+=1\n    return i";
                              */
-                            var code = "def log(".concat(variable1).concat("):\n    ".concat(variable2).concat("<span>'_1'</span>\n    <span>'_2'</span> ").concat(variable1).concat(" > 1):\n        ").concat(variable1).concat(" <span>'_3'</span>\n        ".concat(variable2).concat(" <span>'_4'</span>\n    <span>'_5'</span>").concat(endVar);
+                            var code = "def log(".concat(variable1).concat("):\n    ").concat(variable2).concat("<span>'_1'</span>\n    <span>'_2'</span> ").concat(variable1).concat(" > 1):\n        ").concat(variable1).concat(" <span>'_3'</span>\n        ").concat(variable2).concat(" <span>'_4'</span>\n    <span>'_5'</span>").concat(endVar);
 
                             //Limit number of dropdowns (i.e. don't have 5)
                             var numOfDropdowns = getRandomInt(4, 5);
