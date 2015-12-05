@@ -44,8 +44,14 @@ var main = function (ex) {
     /* Keeps track of whether the correct answer is being displayed or not
      */
     var isCorrectAnswerBeingDisplayed = false;
+    var wasSubmitButtonClicked = false;
     var oldAnswers = []; // Used in Q type 0 to restore old answers after unshowing CA
     var oldColors = []; // Used in Q type 0 to restore old colors after unshowing CA
+
+    //The alert that will show feedback
+    var feedbackAlert = undefined;
+    var isFeedbackShowing = false;
+    var feedbackText = undefined;
     
     /* Used in Q type 2*/
     var leftCode1 =  "def isMultipleOfFourLeft(n):\n"
@@ -120,7 +126,6 @@ var main = function (ex) {
                 dropdownList = dict["dropdown"];
                 question0CodeWell = dict["code"];
                 console.log(question0CodeWell);
-                saveData();
 
                 break;
             case 1:
@@ -158,7 +163,6 @@ var main = function (ex) {
                     }
                 }
                 
-                saveData();
                 break;
             case 2:
                 /* delete and draw */
@@ -169,8 +173,9 @@ var main = function (ex) {
                 	currentIndentPrac.leftCard.well.off("click");
                 	currentIndentPrac.rightCard.well.off("click");
                 }
-                saveData();
+                break;
         };
+        saveData();
     };
 
     var saveData = function (q0Option, q0DropdownI) {
@@ -181,6 +186,18 @@ var main = function (ex) {
         data.totalNumOfQs = totalNumOfQs;
         data.score = score;
         data.totalPossibleScore = totalPossibleScore;
+        data.isCorrectAnswerBeingDisplayed = isCorrectAnswerBeingDisplayed;
+        data.wasSubmitButtonClicked = wasSubmitButtonClicked;
+
+        data.isUndoButtonDisabled = ex.chromeElements.undoButton.isDisabled();
+        data.isRedoButtonDisabled = ex.chromeElements.redoButton.isDisabled();
+        data.isResetButtonDisabled = ex.chromeElements.resetButton.isDisabled();
+        data.isNewButtonDisabled = ex.chromeElements.newButton.isDisabled();
+        data.isDisplayCAButtonDisabled = ex.chromeElements.displayCAButton.isDisabled();
+        data.isSubmitButtonDisabled = ex.chromeElements.submitButton.isDisabled();
+
+        data.isFeedbackShowing = isFeedbackShowing;
+        data.feedbackText = feedbackText;
 
         switch (questionType) {
             case 0:
@@ -189,7 +206,6 @@ var main = function (ex) {
                 data.question0Code = question0Code;
                 data.dropdownInfo = jQuery.extend(true, {}, dropdownInfo);
                 data.descr = header.text();
-                data.isCorrectAnswerBeingDisplayed = isCorrectAnswerBeingDisplayed;
                 data.oldAnswers = oldAnswers;
                 data.oldColors = oldColors;
                 data.dropdownDefaults = [];
@@ -237,19 +253,45 @@ var main = function (ex) {
             totalNumOfQs = ex.data.instance.state.totalNumOfQs;
             score = ex.data.instance.state.score;
             totalPossibleScore = ex.data.instance.state.totalPossibleScore;
+            isCorrectAnswerBeingDisplayed = ex.data.instance.state.isCorrectAnswerBeingDisplayed;
+            wasSubmitButtonClicked = ex.data.instance.state.wasSubmitButtonClicked;
+
+            //Re-disable or enable buttons
+            var disableOrEnable = function(element, isDisabled)  {
+                if (isDisabled) {
+                    element.disable();
+                } else {
+                    element.enable();
+                };
+            };
+            disableOrEnable(ex.chromeElements.undoButton, ex.data.instance.state.isUndoButtonDisabled);
+            disableOrEnable(ex.chromeElements.redoButton, ex.data.instance.state.isRedoButtonDisabled);
+            disableOrEnable(ex.chromeElements.resetButton, ex.data.instance.state.isResetButtonDisabled);
+            disableOrEnable(ex.chromeElements.newButton, ex.data.instance.state.isNewButtonDisabled);
+            disableOrEnable(ex.chromeElements.displayCAButton, ex.data.instance.state.isDisplayCAButtonDisabled);
+            disableOrEnable(ex.chromeElements.submitButton, ex.data.instance.state.isSubmitButtonDisabled);
+
+            isFeedbackShowing = ex.data.instance.state.isFeedbackShowing;
+            feedbackText = ex.data.instance.state.feedbackText;
+
+            if (isFeedbackShowing) showFeedback(feedbackText);
+
             // If quiz mode, write which question you are on
             if (ex.data.meta.mode == "quiz-immediate") {
                 var title = "Question ".concat(String(questionNum)).concat(" of ").concat(String(totalNumOfQs));
                 if (ex.chromeElements.titleHeader === undefined) ex.setTitle(title);
                 else ex.chromeElements.titleHeader.text(title)
             };
+
+            //Display next button if necessary
+            if (wasSubmitButtonClicked) createNextButton();
+
             switch (questionType) {
                 case 0:
                     if (ex.data.instance.state.isCorrectAnswerBeingDisplayed !== undefined) {
                         question0Code = ex.data.instance.state.question0Code;
                         dropdownInfo = ex.data.instance.state.dropdownInfo;
                         var descr = ex.data.instance.state.descr;
-                        isCorrectAnswerBeingDisplayed = ex.data.instance.state.isCorrectAnswerBeingDisplayed;
                         oldAnswers = ex.data.instance.state.oldAnswers;
                         oldColors = ex.data.instance.state.oldColors;
 
@@ -261,8 +303,8 @@ var main = function (ex) {
                         var width = ex.width()-x-margin;
                         var height = ex.height()-y-margin;
 
-                        var showFeedback = (ex.data.meta.mode != "quiz-immediate");
-                        var dict = createCodeWellWithOptions(ex, x, y, width, height, question0Code, dropdownInfo, showFeedback, showFeedback, true, saveData);
+                        var showFeedbackBool = (ex.data.meta.mode != "quiz-immediate");
+                        var dict = createCodeWellWithOptions(ex, x, y, width, height, question0Code, dropdownInfo, showFeedbackBool, showFeedbackBool, true, saveData);
                         dropdownList = dict["dropdown"];
                         question0CodeWell = dict["code"];
 
@@ -272,6 +314,14 @@ var main = function (ex) {
                         var string2 = ' <span class="caret">';
                         for (var i = 0; i < dropdownDefaults.length; i++) {
                             dropdownList[i].dropdown.text(dropdownDefaults[i]);
+                            if (wasSubmitButtonClicked) {
+                                if (isCorrectAnswerBeingDisplayed) {
+                                    dropdownList[i].dropdown.style({color : "green"});
+                                } else {
+                                    dropdownList[i].dropdown.style({color : oldColors[i]});
+                                };
+                                dropdownList[i].dropdown.disable();
+                            };
                         };
                     };
                     break;
@@ -287,8 +337,8 @@ var main = function (ex) {
                     var width = ex.width() - x - margin;
                     var height = ex.height() - y - margin;
 
-                    var showFeedback = (ex.data.meta.mode != "quiz-immediate");
-                    var dict = clickableCodeWell(x, y, width, height, buttonCode, buttonInfo, showFeedback, showFeedback, true)
+                    var showFeedbackBool = (ex.data.meta.mode != "quiz-immediate");
+                    var dict = clickableCodeWell(x, y, width, height, buttonCode, buttonInfo, showFeedbackBool, showFeedbackBool, true)
                     buttonList = dict["button"];
                     buttonCodeWell = dict["code"];
                     break;
@@ -319,6 +369,7 @@ var main = function (ex) {
     /* Handles clicks to the submit button
      */
     var submit = function () {
+        wasSubmitButtonClicked = true;
         var buttonText = "Next";
         if (questionNum == totalNumOfQs) buttonText = "End";
         
@@ -352,7 +403,7 @@ var main = function (ex) {
                 if (numOfCorrectDropdowns == dropdownList.length) beginning = "Congratulations!  "
                 //if (numOfCorrectDropdowns >= dropdownList.length/2) beginning = "Good job!  "
                 var feedback = beginning.concat("You got ").concat(String(numOfCorrectDropdowns)).concat(" dropdowns correct out of ").concat(String(dropdownList.length)).concat(".  Press '").concat(buttonText).concat("' to move on.");
-                ex.showFeedback(feedback);
+                showFeedback(feedback);
                 /* Enable Display CA Button */
                 if (ex.data.meta.mode == "practice") ex.chromeElements.displayCAButton.enable();
                 break;
@@ -385,7 +436,7 @@ var main = function (ex) {
                 var beginning = "";
                 if (numOfCorrectButtons == total) beginning = "Congratulations! ";
                 var feedback = beginning.concat("You got ").concat(String(numOfCorrectButtons)).concat(" buttons correct out of ").concat(String(total)).concat(". Press 'Next' to move on.");
-                ex.showFeedback(feedback);
+                showFeedback(feedback);
                 break;
             case 2:
 
@@ -397,7 +448,16 @@ var main = function (ex) {
                 //if (ex.data.meta.mode == "practice") ex.chromeElements.displayCAButton.enable();
                 
         };
+        createNextButton(buttonText);
+        saveData();
+    };
+
+    var createNextButton = function(buttonText) {
         /* Create the next button */
+        if (buttonText === undefined) {
+            var buttonText = "Next";
+            if (questionNum == totalNumOfQs) buttonText = "End";
+        };
         var x = ex.width()-100;
         var y = ex.height()-42;
         var nextButton = ex.createButton(x, y,buttonText, {
@@ -405,8 +465,14 @@ var main = function (ex) {
                                                         size: "medium"
                                                       });
         nextButton.on("click", function () {
-            
+            wasSubmitButtonClicked = false;
             isCorrectAnswerBeingDisplayed = false;
+
+            if (feedbackAlert !== undefined) {
+                feedbackAlert.remove();
+                isFeedbackShowing = false;
+            };
+
             deleteAll();
             //if (questionType == 2) {
             //  if (currentIndex+1 < type2List.length)currentIndex++;
@@ -415,7 +481,7 @@ var main = function (ex) {
 
             questionType = (questionType+1)%3;
             if (questionType == 2){
-            	question2qtype = (question2qtype+1) % 2
+                question2qtype = (question2qtype+1) % 2
                 var vars = createCode(2,question2qtype);
                 currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
                     vars.question,vars.ca,vars.hint);
@@ -438,14 +504,23 @@ var main = function (ex) {
             /* Disable Display CA Button */
             ex.chromeElements.displayCAButton.disable();
         });
-    };
+    }
+
+    var showFeedback = function (feedback) {
+        feedbackText = feedback;
+        isFeedbackShowing = true;
+        feedbackAlert = ex.alert(feedback, {
+            fontSize: 20,
+            stay: true
+        });
+    }
 
     /* End of excercise
      */
     var endOfExcercise = function () {
         var percent = score/totalPossibleScore;
         var feedback = "You got ".concat(String(score)).concat(" out of ").concat(String(totalPossibleScore)).concat(" points.\n ").concat(String(percent*100)).concat("%");
-        ex.showFeedback(feedback);
+        showFeedback(feedback);
         ex.setGrade(percent, feedback);
     }
 
@@ -495,21 +570,19 @@ var main = function (ex) {
         };
     };
 
-    /* Handles clicks to the submit button
+    /* Handles clicks to the displayCA button
      */
     var displayCA = function () {
         switch (questionType) {
             case 0:
                 console.log(isCorrectAnswerBeingDisplayed);
                 if (isCorrectAnswerBeingDisplayed) {
-                    isCorrectAnswerBeingDisplayed = false;
                     for (var i = 0; i < dropdownList.length; i++) {
                         dropdownList[i].dropdown.text(oldAnswers[i]);
                         dropdownList[i].dropdown.style({color : oldColors[i]});
                         console.log(dropdownList[i].dropdown.text());
                     };
                 } else {
-                    isCorrectAnswerBeingDisplayed = true;
                     for (var i = 0; i < dropdownList.length; i++) {
                         oldAnswers[i] = dropdownToDefaultLabel(dropdownList[i].dropdown);
                         dropdownList[i].dropdown.text(dropdownList[i].correct);
@@ -526,61 +599,50 @@ var main = function (ex) {
             case 2:
                 break;
         };
+        isCorrectAnswerBeingDisplayed = !isCorrectAnswerBeingDisplayed;
+        saveData();
     };
 
-    /* Turns on/off buttons and handlers
+    /* Handles clicks to the reset button
      */
-    var setUp = function () {
-        switch (questionType) {
-            case 0:
-                ex.chromeElements.submitButton.enable();
-                ex.chromeElements.submitButton.off("click");
-                ex.chromeElements.submitButton.on("click", submit);
-                ex.chromeElements.displayCAButton.disable();
-                ex.chromeElements.displayCAButton.off("click");
-                ex.chromeElements.displayCAButton.on("click", displayCA);
-                ex.chromeElements.undoButton.disable();
-                ex.chromeElements.undoButton.off("click");
-                ex.chromeElements.undoButton.on("click", function () {});
-                ex.chromeElements.redoButton.disable();
-                ex.chromeElements.redoButton.off("click");
-                ex.chromeElements.redoButton.on("click", function () {});
-                ex.chromeElements.resetButton.enable();
-                ex.chromeElements.resetButton.off("click");
-                ex.chromeElements.resetButton.on("click", function () {});
-                ex.chromeElements.newButton.enable();
-                ex.chromeElements.newButton.off("click");
-                ex.chromeElements.newButton.on("click", function () {});
-                break;
-            case 1:
-                ex.chromeElements.submitButton.enable();
-                ex.chromeElements.submitButton.off("click");
-                ex.chromeElements.submitButton.on("click", submit);
-                ex.chromeElements.displayCAButton.disable();
-                ex.chromeElements.undoButton.disable();
-                ex.chromeElements.redoButton.disable();
-                ex.chromeElements.resetButton.disable();
-                ex.chromeElements.newButton.disable();
-                break;
-            case 2:
-                ex.chromeElements.submitButton.enable();
-                ex.chromeElements.submitButton.off("click");
-                ex.chromeElements.submitButton.on("click", currentIndentPrac.submit);
-                ex.chromeElements.displayCAButton.disable();
-                ex.chromeElements.displayCAButton.off("click");
-                ex.chromeElements.displayCAButton.on("click", displayCA);
-                ex.chromeElements.undoButton.disable();
-                ex.chromeElements.undoButton.off("click");
-                ex.chromeElements.undoButton.on("click", function () {});
-                ex.chromeElements.redoButton.disable();
-                ex.chromeElements.redoButton.off("click");
-                ex.chromeElements.redoButton.on("click", function () {});
-                ex.chromeElements.resetButton.enable();
-                ex.chromeElements.resetButton.off("click");
-                ex.chromeElements.resetButton.on("click", function () {});
-                ex.chromeElements.newButton.enable();
-                ex.chromeElements.newButton.off("click");
-                ex.chromeElements.newButton.on("click", function () {});
+    var reset = function () {
+        console.log("reset");
+        deleteAll();
+        showQuestion();
+        console.log("showedQuestion");
+        // switch (questionType) {
+        //     case 0:
+        //         break;
+        //     case 1:
+        //         break;
+        //     case 2:
+        //         break;
+        // };
+    };
+
+    /* Turns binds button handlers
+     */
+     var bindButtons = function () {
+        ex.chromeElements.submitButton.off("click");
+        ex.chromeElements.submitButton.on("click", submit);
+        ex.chromeElements.displayCAButton.off("click");
+        ex.chromeElements.displayCAButton.on("click", displayCA);
+        ex.chromeElements.resetButton.off("click");
+        ex.chromeElements.resetButton.on("click", reset);
+        ex.chromeElements.redoButton.off("click");
+        ex.chromeElements.undoButton.off("click");
+     };
+
+     /* Enables/disables buttons
+     */
+    var enableButtons = function () {
+        if (ex.data.meta.mode == "practice") {
+            ex.chromeElements.submitButton.enable();
+            ex.chromeElements.displayCAButton.disable();
+            ex.chromeElements.undoButton.disable();
+            ex.chromeElements.redoButton.disable();
+            ex.chromeElements.resetButton.enable();
+            ex.chromeElements.newButton.enable();
         };
         if (ex.data.meta.mode == "quiz-immediate") {
             ex.chromeElements.submitButton.enable();
@@ -589,12 +651,15 @@ var main = function (ex) {
             ex.chromeElements.redoButton.disable();
             ex.chromeElements.resetButton.disable();
             ex.chromeElements.newButton.disable();
-        }
+        };
     };
 
     var run = function () {
-        setUp();
-        if (!(loadData())) showQuestion();
+        bindButtons();
+        if (!(loadData())) {
+            enableButtons();
+            showQuestion();
+        };
         if (questionType == 2) showQuestion();
     }
 
@@ -711,12 +776,12 @@ var main = function (ex) {
         }
         q.submit = function(){
         	if (ex.data.meta.mode == "quiz-immediate"){
-            	if (q.clicked == ca) ex.showFeedback("Correct!");      
-            	else ex.showFeedback("Incorrect!");
+            	if (q.clicked == ca) showFeedback("Correct!");      
+            	else showFeedback("Incorrect!");
         	}
         	else{
-        		if (q.clicked == ca) ex.showFeedback("Correct!");
-        		else ex.showFeedback("Incorrect!");
+        		if (q.clicked == ca) showFeedback("Correct!");
+        		else showFeedback("Incorrect!");
         	}
         	if (!q.submitted){
             	totalPossibleScore += 4;
@@ -1265,6 +1330,8 @@ var createCode = function(questionType,q2type) {
                             var variable1 = variableNames[getRandomInt(0, variableNames.length-1)];
                             var variable2 = variableNames[getRandomInt(0, variableNames.length-1)];
                             while (variable2 == variable1) variable2 = variableNames[getRandomInt(0, variableNames.length-1)];
+                            var variable3 = variableNames[getRandomInt(0, variableNames.length-1)];
+                            while (variable3 == variable1 || variable3 == variable2) variable2 = variableNames[getRandomInt(0, variableNames.length-1)];
 
                             var endVar = variable2;
                             if (print == 1) endVar = endVar.concat(")");
@@ -1279,7 +1346,7 @@ var createCode = function(questionType,q2type) {
                             /* Sample target code:
                              *var targetCode = "def factorial(x):\n    product = 1\n    for i in xrange(1, x+1):\n        product *= i\n    return product";
                              */
-                            var code = "def factorial(".concat(variable1).concat("):\n    ").concat(variable1).concat("<span>'_1'</span>\n    <span>'_2'</span> ").concat(variable2).concat(" in xrange<span>'_3'</span>:\n        ").concat(variable1).concat(" <span>'_4'</span> ").concat(variable2).concat("\n    <span>'_5'</span>").concat(endVar);
+                            var code = "def factorial(".concat(variable1).concat("):\n    ").concat(variable2).concat("<span>'_1'</span>\n    <span>'_2'</span> ").concat(variable3).concat(" in xrange<span>'_3'</span>:\n        ").concat(variable2).concat(" <span>'_4'</span> ").concat(variable3).concat("\n    <span>'_5'</span>").concat(endVar);
 
                             //Limit number of dropdowns (i.e. don't have 5)
                             var numOfDropdowns = 4;
