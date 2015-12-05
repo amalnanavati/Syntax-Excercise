@@ -146,14 +146,14 @@ var main = function (ex) {
                 for (var i = 0; i < buttonList.length; i++) {
                     if (buttonList[i]["correct"] == true) {
                         buttonList[i]["button"].on("click", function() {
-                            pressedButtons.push(true)
-                            this.disable();
+                            pressedButtons.push(true);
+                            this.style({color : "blue"});
                         });
                     }
                     else {
                         buttonList[i]["button"].on("click", function() {
-                            pressedButtons.push(false)
-                            this.disable();
+                            pressedButtons.push(false);
+                            this.style({color : "blue"});
                         });
                     }
                 }
@@ -366,6 +366,10 @@ var main = function (ex) {
                 for (var j = 0; j < buttonList.length; j++) {
                     if (buttonList[j]["correct"] == true) {
                         total++;
+                        buttonList[j]["button"].style({color : "green"});
+                    }
+                    else {
+                        buttonList[j]["button"].style({color : "red"});
                     }
                     buttonList[j]["button"].disable();
                 }
@@ -724,33 +728,9 @@ var main = function (ex) {
     }
 
     var clickableCodeWell = function(x, y, width, height, code, buttonInfo, buttonDict, showFeedbackIfCorrect, showFeedbackIfWrong, randomDefault) {
-        /* Success and failure functions, which will be called when the user selects
-         * an option on the dropdown
-         */
-         
-        var getSuccessFn = function (feedback) {
-            return function () {
-                feedback = "Correct!  ".concat(feedback);
-                var message = ex.alert(feedback, {
-                        fontSize: 20,
-                        stay: true,
-                        color:"green"
-                });
-            };
-        };
-        var getFailureFn = function (feedback) {
-            return function () {
-                feedback = "Incorrect!  ".concat(feedback);
-                var message = ex.alert(feedback, {
-                        fontSize: 20,
-                        stay: true,
-                        color:"red"
-                });
-            };
-        };
     
         /* Create the code well */
-        var codeWell = ex.createCode(x, y, code, {size:"large", width:width, height:height});
+        buttonCodeWell = ex.createCode(x, y, code, {size:"large", width:width, height:height});
     
         var buttonList = [];
         for (var substring in buttonInfo) {
@@ -760,22 +740,32 @@ var main = function (ex) {
             if (correct) {
                 if (showFeedbackIfCorrect) {
                     feedback = buttonInfo[substring]["feedback"];
+                    feedback = "Correct!  ".concat(feedback);
+                    var message = ex.alert(feedback, {
+                        fontSize: 20,
+                        stay: true,
+                        color:"green"
+                    });
                 }
-                getSuccessFn(buttonInfo[substring]["feedback"]);
             }
             else {
                 if (showFeedbackIfWrong) {
                     feedback = buttonInfo[substring]["feedback"];
+                    feedback = "Incorrect!  ".concat(feedback);
+                    var message = ex.alert(feedback, {
+                        fontSize: 20,
+                        stay: true,
+                        color:"red"
+                    });
                 }
-                getFailureFn(buttonInfo[substring]["feedback"]);
             }
             
             var codeButton = ex.createButton(0,0,defaultStr);
-            ex.insertDropdown(codeWell, substring, codeButton);
+            ex.insertDropdown(buttonCodeWell, substring, codeButton);
             buttonList.push({"button" : codeButton, "correct" : buttonInfo[substring]["correct"]});
         }
         console.log(pressedButtons);
-        return {"code" : codeWell, "button" : buttonList};
+        return {"code" : buttonCodeWell, "button" : buttonList};
     };
 
     run();
