@@ -167,7 +167,7 @@ var main = function (ex) {
         };
     };
 
-    var saveData = function () {
+    var saveData = function (q0Option, q0DropdownI) {
         var data = {};
         
         data.questionType = questionType;
@@ -178,6 +178,8 @@ var main = function (ex) {
 
         switch (questionType) {
             case 0:
+                console.log(q0Option);
+                console.log(q0DropdownI);
                 data.question0Code = question0Code;
                 data.dropdownInfo = jQuery.extend(true, {}, dropdownInfo);
                 data.descr = header.text();
@@ -187,10 +189,15 @@ var main = function (ex) {
 
                 //Save dropdown selected text index, extract it from the html
                 for (var i = 0; i < dropdownList.length; i++) {
-                    var label = dropdownToDefaultLabel(dropdownList[i].dropdown);
+                    var label;
+                    if (i == q0DropdownI) {
+                        label = q0Option;
+                    } else {
+                        label = dropdownToDefaultLabel(dropdownList[i].dropdown);
+                    }
                     data.dropdownDefaults.push(label);
                 };
-                console.log(data.dropdownDefaults);
+                console.log(data);
                 break;
             case 1:
             	data.buttonCode = buttonCode;
@@ -300,6 +307,7 @@ var main = function (ex) {
     var submit = function () {
         var buttonText = "Next";
         if (questionNum == totalNumOfQs) buttonText = "End";
+        
         switch (questionType) {
             case 0:
                 /* Generate Feedback */
@@ -328,9 +336,9 @@ var main = function (ex) {
                 if (numOfCorrectDropdowns == dropdownList.length) beginning = "Congratulations!  "
                 //if (numOfCorrectDropdowns >= dropdownList.length/2) beginning = "Good job!  "
                 var feedback = beginning.concat("You got ").concat(String(numOfCorrectDropdowns)).concat(" dropdowns correct out of ").concat(String(dropdownList.length)).concat(".  Press '").concat(buttonText).concat("' to move on.");
-                /*if (ex.data.meta.mode == "practice")*/ ex.showFeedback(feedback);
+                ex.showFeedback(feedback);
                 /* Enable Display CA Button */
-                //ex.chromeElements.displayCAButton.enable();
+                ex.chromeElements.displayCAButton.enable();
                 break;
             case 1:
             	console.log(pressedButtons);
@@ -354,7 +362,8 @@ var main = function (ex) {
             	pressedButtons = [];
             	score = score + numOfCorrectButtons;
             	totalPossibleScore = totalPossibleScore + total;
-            	var beginning = "Congratulations! ";
+                var beginning = "";
+                if (numOfCorrectButtons == total) beginning = "Congratulations! ";
             	var feedback = beginning.concat("You got ").concat(String(numOfCorrectButtons)).concat(" buttons correct out of ").concat(String(total)).concat(". Press 'Next' to move on.");
                 ex.showFeedback(feedback);
                 break;
@@ -370,6 +379,7 @@ var main = function (ex) {
                                                         size: "medium"
                                                       });
         nextButton.on("click", function () {
+            
             isCorrectAnswerBeingDisplayed = false;
             deleteAll();
             //if (questionType == 2) {
@@ -383,7 +393,7 @@ var main = function (ex) {
     				vars.question,vars.ca);
 
             }
-            questionType = (((questionType/2)+1)%2)*2;//(questionType+1)%3;
+            questionType = /*(((questionType/2)+1)%2)*2;*/(questionType+1)%3;
             if (ex.data.meta.mode == "quiz-immediate") {
                 questionNum++;
                 if (questionNum > totalNumOfQs) {
@@ -718,26 +728,34 @@ var main = function (ex) {
 /* Success and failure functions, which will be called when the user selects
  * an option on the dropdown
  */
-var getSuccessFn = function (ex, feedback, saveData) {
+var getSuccessFn = function (ex, feedback, saveData, showFeedback, option, dropdownI) {
     return function () {
-        feedback = "Correct!  ".concat(feedback);
-        var message = ex.alert(feedback, {
-                fontSize: 20,
-                stay: true,
-                color:"green"
-        });
-        saveData();
+        console.log(option);
+        console.log(dropdownI);
+        if (showFeedback) {
+            feedback = "Correct!  ".concat(feedback);
+            var message = ex.alert(feedback, {
+                    fontSize: 20,
+                    stay: true,
+                    color:"green"
+            });
+        }
+        saveData(option, dropdownI);
     };
 };
-var getFailureFn = function (ex, feedback, saveData) {
+var getFailureFn = function (ex, feedback, saveData, showFeedback, option, dropdownI) {
     return function () {
-        feedback = "Incorrect!  ".concat(feedback);
-        var message = ex.alert(feedback, {
-                fontSize: 20,
-                stay: true,
-                color:"red"
-        });
-        saveData();
+        console.log(option);
+        console.log(dropdownI);
+        if (showFeedback) {
+            feedback = "Incorrect!  ".concat(feedback);
+            var message = ex.alert(feedback, {
+                    fontSize: 20,
+                    stay: true,
+                    color:"red"
+            });
+        }
+        saveData(option, dropdownI);
     };
 };
 
@@ -759,7 +777,9 @@ var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdow
 
     /* Create the dropdown */
     var dropdownList = [];
+    var dropdownI = 0;
     for (var substring in dropdownInfo) {
+        console.log(substring);
         if (dropdownInfo.hasOwnProperty(substring) && (code.indexOf(substring) > -1)) {
             /* Create the dropdown options object */
             var elements = {};
@@ -780,22 +800,15 @@ var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdow
                     var feedback = undefined;
                     if (correct) {
                         correctAnswer = option;
-                        if (showFeedbackIfCorrect) {
-                            feedback = dropdownInfo[substring][option]["feedback"];   
-                            elements[option] = getSuccessFn(ex, dropdownInfo[substring][option]["feedback"], saveData);
-                        } else {
-                            elements[option] = function () { saveData(); };
-                        }
+                        feedback = dropdownInfo[substring][option]["feedback"];   
+                        elements[option] = getSuccessFn(ex, dropdownInfo[substring][option]["feedback"], saveData, showFeedbackIfCorrect, option, dropdownI);
                     } else {
-                        if (showFeedbackIfWrong) {
-                            feedback = dropdownInfo[substring][option]["feedback"]; 
-                            elements[option] = getFailureFn(ex, dropdownInfo[substring][option]["feedback"], saveData);  
-                        } else {
-                            elements[option] = function () { saveData(); };
-                        }
+                        feedback = dropdownInfo[substring][option]["feedback"]; 
+                        elements[option] = getFailureFn(ex, dropdownInfo[substring][option]["feedback"], saveData, showFeedbackIfWrong, option, dropdownI);  
                     };
                 };
             };
+            dropdownI++;
 
             /* Create the dropdown */
             var codeDrop = ex.createDropdown(0,0,defaultStr,{elements: elements});
@@ -1196,6 +1209,242 @@ var createCode = function(questionType) {
                     var descr = "Write a function that takes in two integers, ".concat(variable1).concat(" and ").concat(variable2).concat(", and if ").concat(ifBody[ifBody1].replace("_1", variable1).replace("_2", num1)).concat(" ").concat(logicOperators[logicalOperator]).concat(" ").concat(ifBody[ifBody2].replace("_1", variable2).replace("_2", num2)).concat(", ").concat(returnStr1).concat(operatorString1).concat(", otherwise ").concat(returnStr2).concat(operatorString2);
 
                     return {"code" : code, "dropdownInfo" : dropdownInfo, "descr" : descr};
+                    break;
+                case 2:
+                    var seed = getRandomInt(0, 1);
+                    switch(seed) {
+                        case 0: //Factorial
+                            var print = getRandomInt(0, 1);
+                            var variable1 = variableNames[getRandomInt(0, variableNames.length-1)];
+                            var variable2 = variableNames[getRandomInt(0, variableNames.length-1)];
+                            while (variable2 == variable1) variable2 = variableNames[getRandomInt(0, variableNames.length-1)];
+
+                            var endVar = variable2;
+                            if (print == 1) endVar = endVar.concat(")");
+
+                            var correct1 = " = 1";
+                            var correct2 = "for";
+                            var correct3 = "(1, ".concat(variable1).concat("+1)");
+                            var correct4 = "*=";
+                            var correct5 = "return ";
+                            if (print == 1) correct5 = "print(";
+
+                            /* Sample target code:
+                             *var targetCode = "def factorial(x):\n    product = 1\n    for i in xrange(1, x+1):\n        product *= i\n    return product";
+                             */
+                            var code = "def factorial(".concat(variable1).concat("):\n    ".concat(variable1).concat("<span>'_1'</span>\n    <span>'_2'</span> ").concat(variable2).concat(" in xrange<span>'_3'</span>:\n        ").concat(variable1).concat(" <span>'_4'</span> ").concat(variable2).concat("\n    <span>'_5'</span>").concat(endVar);
+
+                            //Limit number of dropdowns (i.e. don't have 5)
+                            var numOfDropdowns = 4;
+                            var i = 0;
+                            while (i < 5-numOfDropdowns) {
+                                var seed = String(getRandomInt(1, 5))
+                                var substring = "<span>'_".concat(seed).concat("'</span>");
+                                if (code.indexOf(substring) > -1) {
+                                    code = code.replace(substring, eval("correct".concat(seed)));
+                                    i++;
+                                };
+                            };
+
+                            var choice31 = "(1, ".concat(variable1).concat(")");
+                            var choice32 = "(0, ".concat(variable1).concat("+1)");
+                            var choice33 = "(1, ".concat(variable1).concat("+1, 2)");
+
+                            var wrong5 = "";
+                            if (print == 1) {
+                                wrong5 = "return ";
+                            } else {
+                                wrong5 = "print(";
+                            }
+                            var wrongFeedback5 = "Do you want to return or print?";
+                            var correctFeedback5 = "Return gives the value back to the function that called it, whereas print writes it to console.";
+
+                            //Create Dropdown info
+                            var dropdownInfo = {"'_1'" : {}, "'_2'" : {}, "'_3'" : {}, "'_4'" : {}, "'_5'" : {}};
+                            dropdownInfo["'_1'"][" == 1"] = {"feedback" : "Are you assigning a value, or checking for equality?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_1'"][correct1] = {"feedback" : "",
+                                                                        "correct" : true,
+                                                                        "default" : true};
+                            dropdownInfo["'_1'"][" = 0"] = {"feedback" : "Which numeric constant should you start with?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_1'"][" 1"] = {"feedback" : "What symbol do you use to assign a variable?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_2'"]["while "] = {"feedback" : "Do you want to loop an unknown number of times, or a fixed number of times?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_2'"]["if "] = {"feedback" : "Do you want to merely go through the body once, or multiple times?",
+                                                                        "correct" : false,
+                                                                        "default" : true};
+                            dropdownInfo["'_2'"][correct2] = {"feedback" : "A for...in statement iterates for as many elements as there are in the xrange.",
+                                                                        "correct" : true,
+                                                                        "default" : false};
+                            dropdownInfo["'_3'"][correct3] = {"feedback" : "You want i to iterate from 1 to x+1, exclusive of the last argument.",
+                                                                        "correct" : true,
+                                                                        "default" : false};
+                            dropdownInfo["'_3'"][choice31] = {"feedback" : "Xrange does not include the last argument.",
+                                                                        "correct" : false,
+                                                                        "default" : true};
+                            dropdownInfo["'_3'"][choice32] = {"feedback" : "If you start from 0, what will happen to your product?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_3'"][choice33] = {"feedback" : "Do you want to skip over every other number, or hit every integer between the two bounds?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_4'"]["*"] = {"feedback" : "Are you actually storing the value of this multiplication anywhere?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_4'"][correct4] = {"feedback" : "*= first multiplies the two numbers, and assigns the result to the variable on the left.",
+                                                                        "correct" : true,
+                                                                        "default" : true};
+                            dropdownInfo["'_4'"]["="] = {"feedback" : "Are you sure you just want to assign the variable?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_4'"]["=*"] = {"feedback" : "What order should the = and * go in?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_5'"][correct5] = {"feedback" : correctFeedback5,
+                                                                        "correct" : true,
+                                                                        "default" : false};
+                            dropdownInfo["'_5'"][wrong5] = {"feedback" : wrongFeedback5,
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_5'"]["return["] = {"feedback" : "What comes after return?",
+                                                                        "correct" : false,
+                                                                        "default" : true};
+                            dropdownInfo["'_5'"]["print "] = {"feedback" : "In Python 3, is print a function or a statement?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+
+                            //Create function description
+                            var returnStr = "returns ";
+                            if (print == 1) returnStr = "prints ";
+
+                            var descr = "Write a function that takes in an integer and ".concat(returnStr).concat(" its factorial, i.e. the product of the integers from 1 to your argument.");
+
+                            return {"code" : code, "dropdownInfo" : dropdownInfo, "descr" : descr};
+
+                            break;
+                        case 1: //Log
+
+                            var print = getRandomInt(0, 1);
+                            var variable1 = variableNames[getRandomInt(0, variableNames.length-1)];
+                            var variable2 = variableNames[getRandomInt(0, variableNames.length-1)];
+                            while (variable2 == variable1) variable2 = variableNames[getRandomInt(0, variableNames.length-1)];
+
+                            var endVar = variable2;
+                            if (print == 1) endVar = endVar.concat(")");
+
+                            var correct1 = " = 0";
+                            var correct2 = "while (";
+                            var correct3 = "/= 2";
+                            var correct4 = "+= 1";
+                            var correct5 = "return ";
+                            if (print == 1) correct5 = "print(";
+
+                            /* Sample target code:
+                             *var targetCode = "def log(x):\n    i = 0\n    while x > 1:\n        x /= 2\n        i+=1\n    return i";
+                             */
+                            var code = "def log(".concat(variable1).concat("):\n    ".concat(variable2).concat("<span>'_1'</span>\n    <span>'_2'</span> ").concat(variable1).concat(" > 1):\n        ").concat(variable1).concat(" <span>'_3'</span>\n        ".concat(variable2).concat(" <span>'_4'</span>\n    <span>'_5'</span>").concat(endVar);
+
+                            //Limit number of dropdowns (i.e. don't have 5)
+                            var numOfDropdowns = getRandomInt(4, 5);
+                            var i = 0;
+                            while (i < 6-numOfDropdowns) {
+                                var seed = String(getRandomInt(1, 6))
+                                var substring = "<span>'_".concat(seed).concat("'</span>");
+                                if (code.indexOf(substring) > -1) {
+                                    code = code.replace(substring, eval("correct".concat(seed)));
+                                    i++;
+                                };
+                            };
+
+                            var choice31 = "(1, ".concat(variable1).concat(")");
+                            var choice32 = "(0, ".concat(variable1).concat("+1)");
+                            var choice33 = "(1, ".concat(variable1).concat("+1, 2)");
+
+                            var wrong5 = "";
+                            if (print == 1) {
+                                wrong5 = "return ";
+                            } else {
+                                wrong5 = "print(";
+                            }
+                            var wrongFeedback5 = "Do you want to return or print?";
+                            var correctFeedback5 = "Return gives the value back to the function that called it, whereas print writes it to console.";
+
+                            //Create Dropdown info
+                            var dropdownInfo = {"'_1'" : {}, "'_2'" : {}, "'_3'" : {}, "'_4'" : {}, "'_5'" : {}};
+                            dropdownInfo["'_1'"][" == 0"] = {"feedback" : "Are you assigning a value, or checking for equality?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_1'"][correct1] = {"feedback" : "",
+                                                                        "correct" : true,
+                                                                        "default" : true};
+                            dropdownInfo["'_1'"][" = 1"] = {"feedback" : "Which numeric constant should you start with?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_1'"][" 0"] = {"feedback" : "What symbol do you use to assign a variable?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_2'"]["for "] = {"feedback" : "Do you want to loop a fixed number of times, or an unknown number of times??",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_2'"]["if "] = {"feedback" : "Do you want to merely go through the body once, or multiple times?",
+                                                                        "correct" : false,
+                                                                        "default" : true};
+                            dropdownInfo["'_2'"][correct2] = {"feedback" : "A while loop continually iterates until the conditional following it is false.",
+                                                                        "correct" : true,
+                                                                        "default" : false};
+                            dropdownInfo["'_3'"][correct3] = {"feedback" : "You want i to iterate from 1 to x+1, exclusive of the last argument.",
+                                                                        "correct" : true,
+                                                                        "default" : false};
+                            dropdownInfo["'_3'"]["/ 2"] = {"feedback" : "Are you storing the result of the division anywhere?",
+                                                                        "correct" : false,
+                                                                        "default" : true};
+                            dropdownInfo["'_3'"]["=/ 2"] = {"feedback" : "What is the order of the = and /?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_3'"][choice33] = {"feedback" : "/= first divides the numebrs, and assigns the value to the variable on its left.",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_4'"]["+"] = {"feedback" : "Are you actually storing the value of this addition anywhere?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_4'"][correct4] = {"feedback" : "+= first adds the two numbers, and assigns the result to the variable on the left.",
+                                                                        "correct" : true,
+                                                                        "default" : true};
+                            dropdownInfo["'_4'"]["="] = {"feedback" : "Are you sure you just want to assign the variable?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_4'"]["=+"] = {"feedback" : "What order should the = and *+ go in?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_5'"][correct5] = {"feedback" : correctFeedback5,
+                                                                        "correct" : true,
+                                                                        "default" : false};
+                            dropdownInfo["'_5'"][wrong5] = {"feedback" : wrongFeedback5,
+                                                                        "correct" : false,
+                                                                        "default" : false};
+                            dropdownInfo["'_5'"]["return["] = {"feedback" : "What comes after return?",
+                                                                        "correct" : false,
+                                                                        "default" : true};
+                            dropdownInfo["'_5'"]["print "] = {"feedback" : "In Python 3, is print a function or a statement?",
+                                                                        "correct" : false,
+                                                                        "default" : false};
+
+                            //Create function description
+                            var returnStr = "returns ";
+                            if (print == 1) returnStr = "prints ";
+
+                            var descr = "Write a function that takes in an integer and ".concat(returnStr).concat(" its log base 2, i.e. the number of times you can divide the integer by 2 before you reach 1.");
+
+                            return {"code" : code, "dropdownInfo" : dropdownInfo, "descr" : descr};
+
+                            break;
+                    }
                     break;
 
             }
