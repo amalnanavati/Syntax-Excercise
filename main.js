@@ -622,9 +622,7 @@ var main = function (ex) {
                     code2.highlight();
                     console.log(code2.ca);
                     if (!code2.ca){
-                    	console.log("here");
                     	if (ex.data.meta.mode == "practice"){
-                    		console.log("there");
                     		ex.alert(hint, {
                         		fontSize: 20,
                         		stay: true,
@@ -681,7 +679,8 @@ var main = function (ex) {
         
         q.drawQuestion = function(){
             q.textPara = ex.createParagraph(q.x,q.y,
-                "Click on the code that correctly "+q.question);
+                "Click on the code that correctly "+q.question,
+                {size: "xlarge", width:ex.width(), textAlign:"center"});
         }
         q.draw = function(){
             q.leftCard.draw();
