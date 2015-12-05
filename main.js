@@ -45,6 +45,7 @@ var main = function (ex) {
      */
     var isCorrectAnswerBeingDisplayed = false;
     var oldAnswers = []; // Used in Q type 0 to restore old answers after unshowing CA
+    var oldColors = []; // Used in Q type 0 to restore old colors after unshowing CA
     
     /* Used in Q type 2*/
     var leftCode1 =  "def isMultipleOfFourLeft(n):\n"
@@ -60,7 +61,7 @@ var main = function (ex) {
                     +"        return result";
 
     var leftCode2 =  "def printPrimesLeft(n):\n"
-    				+"    for i in range(2,n):\n"
+                    +"    for i in range(2,n):\n"
                     +"        j = 2\n"
                     +"        while(j <= (i/j)):\n"
                     +"            if (i % j == 0): break\n"
@@ -68,7 +69,7 @@ var main = function (ex) {
                     +"        if (j > i/j) : print i";
 
     var rightCode2 = "def printPrimesRight(n):\n"
-    				+"    for i in range(2,n):\n"
+                    +"    for i in range(2,n):\n"
                     +"        j = 2\n"
                     +"    while(j <= (i/j)):\n"
                     +"        if (i % j == 0): break\n"
@@ -78,13 +79,13 @@ var main = function (ex) {
     var code2 = "def f(x):\n    if (x == 2):\n        x+=2\n    return x";*/
 
     var type2List = [IndentPrac(leftCode1,rightCode1,
-    	"calculates if an integer is a multiple of 4",1),
-    				 IndentPrac(leftCode2,rightCode2,
-    	"print all the prime numbers up to n",1)];
+        "calculates if an integer is a multiple of 4",1),
+                     IndentPrac(leftCode2,rightCode2,
+        "print all the prime numbers up to n",1)];
 
     var vars = createCode(2);
     var currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
-    	vars.question,vars.ca);
+        vars.question,vars.ca);
     //saveData();
     var currentIndex = 0;
         /* Shows the appropriate question type
@@ -96,7 +97,7 @@ var main = function (ex) {
             if (ex.chromeElements.titleHeader === undefined) ex.setTitle(title);
             else ex.chromeElements.titleHeader.text(title)
         };
-    	console.log("show question");
+        console.log("show question");
         switch (questionType) {
             case 0:
                 /* Create the code well */
@@ -122,40 +123,40 @@ var main = function (ex) {
 
                 break;
             case 1:
-            	var codeInfo = createCode(questionType);
-            	buttonCode = codeInfo.code;
-            	buttonInfo = codeInfo.buttonInfo;
-            	var descr = codeInfo.descr;
-            	buttonDict = codeInfo.buttonDict;
+                var codeInfo = createCode(questionType);
+                buttonCode = codeInfo.code;
+                buttonInfo = codeInfo.buttonInfo;
+                var descr = codeInfo.descr;
+                buttonDict = codeInfo.buttonDict;
                 
                 buttonHeader = ex.createParagraph(0, 0, descr, {size : "xlarge", width : ex.width(), textAlign : "center"});
                 var margin = 50;
-            	var x = 50;
-            	var y = buttonHeader.height() + margin;
-            	var width = ex.width() - x - margin;
-            	var height = ex.height() - y - margin * 2;
-            	
-            	var showFeedback = (ex.data.meta.mode != "quiz-immediate");
-            	var dict = clickableCodeWell(x, y, width, height, buttonCode, buttonInfo, buttonDict, pressedButtons, showFeedback, showFeedback, true);
-            	buttonList = dict["button"];
-            	console.log(buttonList);
-            	buttonCode = dict["code"];
-            	
-            	for (var i = 0; i < buttonList.length; i++) {
-            	    if (buttonList[i]["correct"] == true) {
-            	        buttonList[i]["button"].on("click", function() {
-            	            pressedButtons.push(true)
-            	            this.disable();
-            	        });
-            	    }
-            	    else {
-            	        buttonList[i]["button"].on("click", function() {
-            	            pressedButtons.push(false)
-            	            this.disable();
-            	        });
-            	    }
-            	}
-            	
+                var x = 50;
+                var y = buttonHeader.height() + margin;
+                var width = ex.width() - x - margin;
+                var height = ex.height() - y - margin * 2;
+                
+                var showFeedback = (ex.data.meta.mode != "quiz-immediate");
+                var dict = clickableCodeWell(x, y, width, height, buttonCode, buttonInfo, buttonDict, pressedButtons, showFeedback, showFeedback, true);
+                buttonList = dict["button"];
+                console.log(buttonList);
+                buttonCode = dict["code"];
+                
+                for (var i = 0; i < buttonList.length; i++) {
+                    if (buttonList[i]["correct"] == true) {
+                        buttonList[i]["button"].on("click", function() {
+                            pressedButtons.push(true)
+                            this.disable();
+                        });
+                    }
+                    else {
+                        buttonList[i]["button"].on("click", function() {
+                            pressedButtons.push(false)
+                            this.disable();
+                        });
+                    }
+                }
+                
                 saveData();
                 break;
             case 2:
@@ -185,6 +186,7 @@ var main = function (ex) {
                 data.descr = header.text();
                 data.isCorrectAnswerBeingDisplayed = isCorrectAnswerBeingDisplayed;
                 data.oldAnswers = oldAnswers;
+                data.oldColors = oldColors;
                 data.dropdownDefaults = [];
 
                 //Save dropdown selected text index, extract it from the html
@@ -200,13 +202,13 @@ var main = function (ex) {
                 console.log(data);
                 break;
             case 1:
-            	data.buttonCode = buttonCode;
-            	data.buttonInfo = jQuery.extend(true, {}, buttonInfo);
-            	data.buttonDict = jQuery.extend(true, {}, buttonDict);
-            	data.descr = buttonHeader.text();
-            	break;
+                data.buttonCode = buttonCode;
+                data.buttonInfo = jQuery.extend(true, {}, buttonInfo);
+                data.buttonDict = jQuery.extend(true, {}, buttonDict);
+                data.descr = buttonHeader.text();
+                break;
             case 2:
-               	data.question2LeftCode = currentIndentPrac.leftCode;
+                data.question2LeftCode = currentIndentPrac.leftCode;
                 data.question2RightCode = currentIndentPrac.rightCode;
                 data.question2Question = currentIndentPrac.question;
                 data.question2Ca = currentIndentPrac.ca;
@@ -242,6 +244,7 @@ var main = function (ex) {
                         var descr = ex.data.instance.state.descr;
                         isCorrectAnswerBeingDisplayed = ex.data.instance.state.isCorrectAnswerBeingDisplayed;
                         oldAnswers = ex.data.instance.state.oldAnswers;
+                        oldColors = ex.data.instance.state.oldColors;
 
                         /* Create the instructions/description of code */
                         header = ex.createParagraph(0,0,descr,{size: "xlarge", width:ex.width(), textAlign:"center"});
@@ -266,11 +269,11 @@ var main = function (ex) {
                     };
                     break;
                 case 1:
-                	buttonCode = ex.data.instance.state.buttonCode;
-                	buttonInfo = ex.data.instance.state.buttonInfo;
-                	buttonDict = ex.data.instance.state.buttonDict;
-                	var descr = ex.data.instance.state.descr;
-                	buttonHeader = ex.createParagraph(0,0,descr,{size : "xlarge", width : ex.width(), textAlign : "center"});
+                    buttonCode = ex.data.instance.state.buttonCode;
+                    buttonInfo = ex.data.instance.state.buttonInfo;
+                    buttonDict = ex.data.instance.state.buttonDict;
+                    var descr = ex.data.instance.state.descr;
+                    buttonHeader = ex.createParagraph(0,0,descr,{size : "xlarge", width : ex.width(), textAlign : "center"});
                     var margin = 50;
                     var x = 50;
                     var y = buttonHeader.height() + margin;
@@ -284,18 +287,18 @@ var main = function (ex) {
                     break;
                 case 2:
 
-                	var left = ex.data.instance.state.question2LeftCode;
-                	var right = ex.data.instance.state.question2RightCode;
-                	var q = ex.data.instance.state.question2Question;
-                	var ca = ex.data.instance.state.question2Ca;
-                	currentIndentPrac = IndentPrac(left,right,q,ca);
-                	currentIndentPrac.clicked = ex.data.instance.state.question2Clicked;
-                	if (currentIndentPrac.clicked == 1){
-                		currentIndentPrac.leftCard.clicked = true;
-                	}
-                	else if (currentIndentPrac.clicked == -1){
-                		currentIndentPrac.rightCard.clicked = true;
-                	}               
+                    var left = ex.data.instance.state.question2LeftCode;
+                    var right = ex.data.instance.state.question2RightCode;
+                    var q = ex.data.instance.state.question2Question;
+                    var ca = ex.data.instance.state.question2Ca;
+                    currentIndentPrac = IndentPrac(left,right,q,ca);
+                    currentIndentPrac.clicked = ex.data.instance.state.question2Clicked;
+                    if (currentIndentPrac.clicked == 1){
+                        currentIndentPrac.leftCard.clicked = true;
+                    }
+                    else if (currentIndentPrac.clicked == -1){
+                        currentIndentPrac.rightCard.clicked = true;
+                    }               
             };
             return true;
         };
@@ -324,8 +327,10 @@ var main = function (ex) {
                     if (currText.indexOf(dropdownList[i].correct) > -1) {
                         numOfCorrectDropdowns = numOfCorrectDropdowns + 1;
                         dropdownList[i].dropdown.style({color: "green"});
+                        oldColors[i] = "green";
                     } else {
                         dropdownList[i].dropdown.style({color: "red"});
+                        oldColors[i] = "red";
                     };
                     /* Disable dropdown */
                     dropdownList[i].dropdown.disable();
@@ -338,37 +343,37 @@ var main = function (ex) {
                 var feedback = beginning.concat("You got ").concat(String(numOfCorrectDropdowns)).concat(" dropdowns correct out of ").concat(String(dropdownList.length)).concat(".  Press '").concat(buttonText).concat("' to move on.");
                 ex.showFeedback(feedback);
                 /* Enable Display CA Button */
-                ex.chromeElements.displayCAButton.enable();
+                if (ex.data.meta.mode == "practice") ex.chromeElements.displayCAButton.enable();
                 break;
             case 1:
-            	console.log(pressedButtons);
-            	var numOfCorrectButtons = 0;
-            	var total = 0;
-            	if (buttonList == undefined) {
-            		throw "buttonList is undefined!";
-            	}
-            	for (var j = 0; j < buttonList.length; j++) {
-            	    if (buttonList[j]["correct"] == true) {
-            	        total++;
-            	    }
-            	    buttonList[j]["button"].disable();
-            	}
-            	for (var i = 0; i < pressedButtons.length; i++) {
-            	    console.log(pressedButtons);
-            		if (pressedButtons[i] == true) {
-            			numOfCorrectButtons++;
-            		}
-            	}
-            	pressedButtons = [];
-            	score = score + numOfCorrectButtons;
-            	totalPossibleScore = totalPossibleScore + total;
+                console.log(pressedButtons);
+                var numOfCorrectButtons = 0;
+                var total = 0;
+                if (buttonList == undefined) {
+                    throw "buttonList is undefined!";
+                }
+                for (var j = 0; j < buttonList.length; j++) {
+                    if (buttonList[j]["correct"] == true) {
+                        total++;
+                    }
+                    buttonList[j]["button"].disable();
+                }
+                for (var i = 0; i < pressedButtons.length; i++) {
+                    console.log(pressedButtons);
+                    if (pressedButtons[i] == true) {
+                        numOfCorrectButtons++;
+                    }
+                }
+                pressedButtons = [];
+                score = score + numOfCorrectButtons;
+                totalPossibleScore = totalPossibleScore + total;
                 var beginning = "";
                 if (numOfCorrectButtons == total) beginning = "Congratulations! ";
-            	var feedback = beginning.concat("You got ").concat(String(numOfCorrectButtons)).concat(" buttons correct out of ").concat(String(total)).concat(". Press 'Next' to move on.");
+                var feedback = beginning.concat("You got ").concat(String(numOfCorrectButtons)).concat(" buttons correct out of ").concat(String(total)).concat(". Press 'Next' to move on.");
                 ex.showFeedback(feedback);
                 break;
             case 2:
-            	currentIndentPrac.submit();
+                currentIndentPrac.submit();
                 
         };
         /* Create the next button */
@@ -388,12 +393,12 @@ var main = function (ex) {
             //}
             if (questionType == 2){
 
-               	var vars = createCode(2);
-    			currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
-    				vars.question,vars.ca);
+                var vars = createCode(2);
+                currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
+                    vars.question,vars.ca);
 
             }
-            questionType = /*(((questionType/2)+1)%2)*2;*/(questionType+1)%3;
+            questionType = (questionType+1)%3;
             if (ex.data.meta.mode == "quiz-immediate") {
                 questionNum++;
                 if (questionNum > totalNumOfQs) {
@@ -445,22 +450,22 @@ var main = function (ex) {
                 dropdownList = undefined;
                 break;
             case 1:
-            	console.log("in button deleteall");
-            	if (buttonHeader !== undefined) {
-            	    console.log("remove buttonHeader");
-            		buttonHeader.remove();
-            		buttonHeader = undefined;
-            	}
-            	if (buttonCodeWell !== undefined) {
-            	    console.log("removed buttonCodeWell");
-            		buttonCodeWell.remove();
-            		buttonCodeWell = undefined;
-            	}
-            	for (var i = 0; i < buttonList.length; i++) {
-            	    console.log("removed button ".concat(String(i)));
-            		buttonList[i].button.remove();
-            	}
-            	buttonList = undefined;
+                console.log("in button deleteall");
+                if (buttonHeader !== undefined) {
+                    console.log("remove buttonHeader");
+                    buttonHeader.remove();
+                    buttonHeader = undefined;
+                }
+                if (buttonCodeWell !== undefined) {
+                    console.log("removed buttonCodeWell");
+                    buttonCodeWell.remove();
+                    buttonCodeWell = undefined;
+                }
+                for (var i = 0; i < buttonList.length; i++) {
+                    console.log("removed button ".concat(String(i)));
+                    buttonList[i].button.remove();
+                }
+                buttonList = undefined;
                 break;
             case 2:
                 currentIndentPrac.clear();
@@ -478,21 +483,23 @@ var main = function (ex) {
                     isCorrectAnswerBeingDisplayed = false;
                     for (var i = 0; i < dropdownList.length; i++) {
                         dropdownList[i].dropdown.text(oldAnswers[i]);
+                        dropdownList[i].dropdown.style({color : oldColors[i]});
                         console.log(dropdownList[i].dropdown.text());
                     };
                 } else {
                     isCorrectAnswerBeingDisplayed = true;
                     for (var i = 0; i < dropdownList.length; i++) {
-                        oldAnswers[i] = dropdownList[i].dropdown.text();
+                        oldAnswers[i] = dropdownToDefaultLabel(dropdownList[i].dropdown);
                         dropdownList[i].dropdown.text(dropdownList[i].correct);
+                        dropdownList[i].dropdown.style({color : "green"});
                         console.log(dropdownList[i].dropdown.text());
                     };
                 };
                 break;
             case 1:
-            	ex.chromeElements.submitButton.enable();
-            	ex.chromeElements.submitButton.off("click");
-            	ex.chromeElements.submitButton.on("click", submit);
+                ex.chromeElements.submitButton.enable();
+                ex.chromeElements.submitButton.off("click");
+                ex.chromeElements.submitButton.on("click", submit);
                 break;
             case 2:
                 break;
@@ -524,7 +531,7 @@ var main = function (ex) {
                 ex.chromeElements.newButton.on("click", function () {});
                 break;
             case 1:
-            	ex.chromeElements.submitButton.enable();
+                ex.chromeElements.submitButton.enable();
                 ex.chromeElements.submitButton.off("click");
                 ex.chromeElements.submitButton.on("click", submit);
                 ex.chromeElements.displayCAButton.disable();
@@ -568,7 +575,7 @@ var main = function (ex) {
         code2.clicked = false;
          
         code2.draw = function(){
-        	//console.log(code2.width,code2.height);
+            //console.log(code2.width,code2.height);
             code2.well = ex.createCode(code2.x,code2.y,code2.content,
                 {language:"python",
                  selectable:true,
@@ -595,7 +602,7 @@ var main = function (ex) {
         }
         code2.clear = function(){
             ex.graphics.ctx.clearRect(code2.x-code2.margin,code2.y-code2.margin,
-            	ex.width()/2,code2.height+15);
+                ex.width()/2,code2.height+15);
             if (code2.well != undefined){
                 code2.well.remove();
             }
@@ -640,34 +647,34 @@ var main = function (ex) {
             }
         }
         q.clear = function(){
-        	q.leftCard.clear();
-        	q.rightCard.clear();
-        	if (q.textPara != undefined){
-        		q.textPara.remove();
-        	}
+            q.leftCard.clear();
+            q.rightCard.clear();
+            if (q.textPara != undefined){
+                q.textPara.remove();
+            }
 
         }
         q.submit = function(){
-        	/*if (q.clicked == ca){
-        			ex.alert("Correct!",{
+            /*if (q.clicked == ca){
+                    ex.alert("Correct!",{
                     fontSize: 20,
                     stay: true,
                     color:"green"
             });
-        		}
-        		else ex.alert("Incorrect!",{
+                }
+                else ex.alert("Incorrect!",{
                     fontSize: 20,
                     stay: true,
                     color:"red"
             });*/
-        	totalPossibleScore += 4;
-        	if (q.clicked == ca) score += 4;
+            totalPossibleScore += 4;
+            if (q.clicked == ca) score += 4;
         }
         return q;
     }
 
-	var clickableCodeWell = function(x, y, width, height, code, buttonInfo, buttonDict, showFeedbackIfCorrect, showFeedbackIfWrong, randomDefault) {
-    	/* Success and failure functions, which will be called when the user selects
+    var clickableCodeWell = function(x, y, width, height, code, buttonInfo, buttonDict, showFeedbackIfCorrect, showFeedbackIfWrong, randomDefault) {
+        /* Success and failure functions, which will be called when the user selects
          * an option on the dropdown
          */
          
@@ -697,25 +704,25 @@ var main = function (ex) {
     
         var buttonList = [];
         for (var substring in buttonInfo) {
-        	var defaultStr = buttonDict[substring];
-        	var correct = buttonInfo[substring]["correct"];
-        	var feedback = undefined;
-        	if (correct) {
-        		if (showFeedbackIfCorrect) {
-        			feedback = buttonInfo[substring]["feedback"];
-        		}
-        	    getSuccessFn(buttonInfo[substring]["feedback"]);
-        	}
-        	else {
-        		if (showFeedbackIfWrong) {
-        			feedback = buttonInfo[substring]["feedback"];
-        		}
-        		getFailureFn(buttonInfo[substring]["feedback"]);
-        	}
-        	
-        	var codeButton = ex.createButton(0,0,defaultStr);
-        	ex.insertDropdown(codeWell, substring, codeButton);
-        	buttonList.push({"button" : codeButton, "correct" : buttonInfo[substring]["correct"]});
+            var defaultStr = buttonDict[substring];
+            var correct = buttonInfo[substring]["correct"];
+            var feedback = undefined;
+            if (correct) {
+                if (showFeedbackIfCorrect) {
+                    feedback = buttonInfo[substring]["feedback"];
+                }
+                getSuccessFn(buttonInfo[substring]["feedback"]);
+            }
+            else {
+                if (showFeedbackIfWrong) {
+                    feedback = buttonInfo[substring]["feedback"];
+                }
+                getFailureFn(buttonInfo[substring]["feedback"]);
+            }
+            
+            var codeButton = ex.createButton(0,0,defaultStr);
+            ex.insertDropdown(codeWell, substring, codeButton);
+            buttonList.push({"button" : codeButton, "correct" : buttonInfo[substring]["correct"]});
         }
         console.log(pressedButtons);
         return {"code" : codeWell, "button" : buttonList};
@@ -825,7 +832,7 @@ var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdow
 };
 
 var clickableCodeWell = function(x, y, width, height, code, buttonInfo, buttonDict, showFeedbackIfCorrect, showFeedbackIfWrong, randomDefault) {
-	/* Success and failure functions, which will be called when the user selects
+    /* Success and failure functions, which will be called when the user selects
      * an option on the dropdown
      */
     var getSuccessFn = function (feedback) {
@@ -854,33 +861,33 @@ var clickableCodeWell = function(x, y, width, height, code, buttonInfo, buttonDi
 
     var buttonList = [];
     for (var substring in buttonInfo) {
-    	var defaultStr = buttonDict[substring];
-    	var correct = buttonInfo[substring]["correct"];
-    	var feedback = undefined;
-    	var elements = {};
-    	if (correct) {
-    		if (showFeedbackIfCorrect) {
-    			feedback = buttonInfo[substring]["feedback"];
-    		}
-    		elements[option] = getSuccessFn(buttonInfo[substring]["feedback"]);
-    	}
-    	else {
-    		if (showFeedbackIfWrong) {
-    			feedback = buttonInfo[substring]["feedback"];
-    		}
-    		elements[option] = getFailureFn(buttonInfo[substring]["feedback"]);
-    	}
+        var defaultStr = buttonDict[substring];
+        var correct = buttonInfo[substring]["correct"];
+        var feedback = undefined;
+        var elements = {};
+        if (correct) {
+            if (showFeedbackIfCorrect) {
+                feedback = buttonInfo[substring]["feedback"];
+            }
+            elements[option] = getSuccessFn(buttonInfo[substring]["feedback"]);
+        }
+        else {
+            if (showFeedbackIfWrong) {
+                feedback = buttonInfo[substring]["feedback"];
+            }
+            elements[option] = getFailureFn(buttonInfo[substring]["feedback"]);
+        }
 
-    	var codeButton = ex.createButton(0,0,defaultStr);
-    	ex.insertDropdown(codeWell, substring, codeButton);
-    	buttonList.push({"button" : codeButton, "correct" : buttonInfo[substring]["correct"]});
+        var codeButton = ex.createButton(0,0,defaultStr);
+        ex.insertDropdown(codeWell, substring, codeButton);
+        buttonList.push({"button" : codeButton, "correct" : buttonInfo[substring]["correct"]});
     }
     
     return {"code" : codeWell, "button" : buttonList};
 };
 
 var createCode = function(questionType) {
-	
+    
     switch (questionType) {
         case 0:
             var arithmeticOperators = {"+" : "_1 added to _2", "*" : "_1 multiplied by _2", "-" : "_1 minus _2", "/" : "_1 divided by _2"};
@@ -891,7 +898,7 @@ var createCode = function(questionType) {
             var functionNames = ["f", "g", "h"];
 
 
-            var typeOfQuestion = getRandomInt(1, 2);
+            var typeOfQuestion = getRandomInt(1, 3);
 
             switch (typeOfQuestion) {
                 case 1:
@@ -1210,7 +1217,7 @@ var createCode = function(questionType) {
 
                     return {"code" : code, "dropdownInfo" : dropdownInfo, "descr" : descr};
                     break;
-                case 2:
+                case 3:
                     var seed = getRandomInt(0, 1);
                     switch(seed) {
                         case 0: //Factorial
@@ -1450,138 +1457,138 @@ var createCode = function(questionType) {
             }
             break;
         case 1:
-        	var infoNum = 0; /*getRandomInt(0,1);*/
-        	
-        	/* def f(x)
-        	      if x % 2 = 0
-        	            return true;
-        	       else
-					    return false */
-        	var ifCode = "<span>'_1'</span> <span>'_2'</span>(x)<span>'_3'</span>\n" +
-        				 "    if x <span>'_4'</span> 2 <span>'_5'</span> 0<span>'_6'</span>\n" +
-        				 "        return true<span>'_7'</span>\n" +
-        				 "    else<span>'_8'</span>\n" +
-        				 "        return false<span>'_9'</span>";
-        	var _1words = ["def", "function", "fun", "fn"];
-        	var _1correct = "def";
-        	var _1word = _1words[Math.floor(Math.random() * _1words.length)];
-        	var _3words = [" ", ":", "{", ";"];
-        	var _3correct = ":";
-        	var _3word = _3words[Math.floor(Math.random() * _3words.length)];
-        	var _5words = ["==", "="];
-        	var _5correct = "==";
-        	var _5word = _5words[Math.floor(Math.random() * _5words.length)];
-        	var _6words = [" ", ":", "{", ";"];
-        	var _6correct = ":";
-        	var _6word = _6words[Math.floor(Math.random() * _6words.length)];
-        	var _7words = [" ", ":", "{", ";"];
-        	var _7correct = " ";
-        	var _7word = _7words[Math.floor(Math.random() * _7words.length)];
-        	var _8words = [" ", ":", "{", ";"];
-        	var _8correct = ":";
-        	var _8word = _8words[Math.floor(Math.random() * _8words.length)];
-        	var _9words = [" ", ":", "{", ";"];
-        	var _9correct = " ";
-        	var _9word = _9words[Math.floor(Math.random() * _9words.length)];
-        	
-        	/* function g(x)
-        			product == 1
-        			for i of xrange x {
-						product * i = product
-        		return product */
-        	var loopCode =  "<span>_1</span> <span>_2</span>(x)<span>_3</span>\n" +
-        					"    product <span>_4</span> 1\n" +
-        					"    for i <span>_5</span> xrange<span>_6</span><span>_7</span>\n" +
-        					"        <span>_9</span>\n" +
-        					"<span>_9</span>";
-        	
-        	var ifDict = {"_1" : _1word, "_2" : "isEven", "_3" : _3word, "_4" : "%", 
-        					"_5" : _5word, "_6" : _6word, "_7" : _7word, "_8" : _8word,
-        					"_9" : _9word};
+            var infoNum = 0; /*getRandomInt(0,1);*/
+            
+            /* def f(x)
+                  if x % 2 = 0
+                        return true;
+                   else
+                        return false */
+            var ifCode = "<span>'_1'</span> <span>'_2'</span>(x)<span>'_3'</span>\n" +
+                         "    if x <span>'_4'</span> 2 <span>'_5'</span> 0<span>'_6'</span>\n" +
+                         "        return true<span>'_7'</span>\n" +
+                         "    else<span>'_8'</span>\n" +
+                         "        return false<span>'_9'</span>";
+            var _1words = ["def", "function", "fun", "fn"];
+            var _1correct = "def";
+            var _1word = _1words[Math.floor(Math.random() * _1words.length)];
+            var _3words = [" ", ":", "{", ";"];
+            var _3correct = ":";
+            var _3word = _3words[Math.floor(Math.random() * _3words.length)];
+            var _5words = ["==", "="];
+            var _5correct = "==";
+            var _5word = _5words[Math.floor(Math.random() * _5words.length)];
+            var _6words = [" ", ":", "{", ";"];
+            var _6correct = ":";
+            var _6word = _6words[Math.floor(Math.random() * _6words.length)];
+            var _7words = [" ", ":", "{", ";"];
+            var _7correct = " ";
+            var _7word = _7words[Math.floor(Math.random() * _7words.length)];
+            var _8words = [" ", ":", "{", ";"];
+            var _8correct = ":";
+            var _8word = _8words[Math.floor(Math.random() * _8words.length)];
+            var _9words = [" ", ":", "{", ";"];
+            var _9correct = " ";
+            var _9word = _9words[Math.floor(Math.random() * _9words.length)];
+            
+            /* function g(x)
+                    product == 1
+                    for i of xrange x {
+                        product * i = product
+                return product */
+            var loopCode =  "<span>_1</span> <span>_2</span>(x)<span>_3</span>\n" +
+                            "    product <span>_4</span> 1\n" +
+                            "    for i <span>_5</span> xrange<span>_6</span><span>_7</span>\n" +
+                            "        <span>_9</span>\n" +
+                            "<span>_9</span>";
+            
+            var ifDict = {"_1" : _1word, "_2" : "isEven", "_3" : _3word, "_4" : "%", 
+                            "_5" : _5word, "_6" : _6word, "_7" : _7word, "_8" : _8word,
+                            "_9" : _9word};
             var ifButtonInfo = {"_1" : {}, "_2" : {}, "_3" : {}, "_4" : {}, "_5" : {},
-        						"_6" : {}, "_7" : {}, "_8" : {}, "_9" : {}};
-        	ifButtonInfo["_1"][_1correct] = {"feedback" : "The right way to begin a function is with 'def'.",
-        										"correct" : false};
-        	ifButtonInfo["_1"]["function"] = {"feedback" : "In Javascript, this is how you define a function, not Python.",
-        										"correct" : true};
-        	ifButtonInfo["_1"]["fun"] = {"feedback" : "In Standard ML, this is how you define a function, not Python.",
-        										"correct" : true};
-        	ifButtonInfo["_1"]["fn"] = {"feedback" : "This is used for defining anonymous or lambda functions.",
-        										"correct" : true};
-        	ifButtonInfo["_2"]["isEven"] = {"feedback" : "You can name your function anything you want.",
-        										"correct" : false};
-        	ifButtonInfo["_3"][" "] = {"feedback" : "You have to let Python know when you're starting your function.",
-        										"correct" : true};								
-        	ifButtonInfo["_3"][_3correct] = {"feedback" : "The colon lets Python know that you're writing your function now.",
-        										"correct" : false};		
-        	ifButtonInfo["_3"]["{"] = {"feedback" : "In any C-based language this would be right, but not in Python.",
-        										"correct" : true};
-        	ifButtonInfo["_3"][";"] = {"feedback" : "Close!.",
-        										"correct" : true};	
-        	ifButtonInfo["_4"]["%"] = {"feedback" : "Any arithmetic operator would work here.",
-        										"correct" : false};
-        	ifButtonInfo["_5"][_5correct] = {"feedback" : "This is testing for equality, not variable assignment.",
-        										"correct" : false};																																	
-        	ifButtonInfo["_5"]["="] = {"feedback" : "We are not assigning a variable, but testing for equality.",
-        										"correct" : true};
-        	ifButtonInfo["_6"][_6correct] = {"feedback" : "We are now going into the body of the if statement by this colon.",
-        										"correct" : false};
-        	ifButtonInfo["_6"][" "] = {"feedback" : "We need syntax that will allow Python to recognize that we are entering the if statement.",
-        										"correct" : true};
-        	ifButtonInfo["_6"]["{"] = {"feedback" : "We need syntax that will allow Python to recognize that we are entering the if statement.",
-        										"correct" : true};
-        	ifButtonInfo["_6"][";"] = {"feedback" : "Close!.",
-        										"correct" : true};
-        	ifButtonInfo["_7"][_7correct] = {"feedback" : "After any statement without a body doesn't need anything after it, just a new line.",
-        										"correct" : false};	
-        	ifButtonInfo["_7"][":"] = {"feedback" : "Nothing is needed after a return statement.",
-        										"correct" : true};																																																						
-        	ifButtonInfo["_7"]["{"] = {"feedback" : "Nothing is needed after a return statement.",
-        										"correct" : true};	
-        	ifButtonInfo["_7"][";"] = {"feedback" : "Nothing is needed after a return statement.",
-        										"correct" : true};	
-        	ifButtonInfo["_8"][_8correct] = {"feedback" : "We are now going into the body of the else statement by this colon.",
-        										"correct" : false};
-        	ifButtonInfo["_8"][" "] = {"feedback" : "We need syntax that will allow Python to recognize that we are entering the else statement.",
-        										"correct" : true};		
-        	ifButtonInfo["_8"]["{"] = {"feedback" : "We need syntax that will allow Python to recognize that we are entering the else statement.",
-        										"correct" : true};
-        	ifButtonInfo["_8"][";"] = {"feedback" : "We need syntax that will allow Python to recognize that we are entering the else statement.",
-        										"correct" : true};
-        	ifButtonInfo["_9"][_9correct] = {"feedback" : "We don't need anything after a return statement.",
-        										"correct" : false};
-        	ifButtonInfo["_9"][":"] = {"feedback" : "A return statement is fine on its own.",
-        										"correct" : true};		
-        	ifButtonInfo["_9"]["{"] = {"feedback" : "No other syntax needed here.",
-        										"correct" : true};
-        	ifButtonInfo["_9"][";"] = {"feedback" : "No other syntax needed here.",
-        										"correct" : true};																																																				
+                                "_6" : {}, "_7" : {}, "_8" : {}, "_9" : {}};
+            ifButtonInfo["_1"][_1correct] = {"feedback" : "The right way to begin a function is with 'def'.",
+                                                "correct" : false};
+            ifButtonInfo["_1"]["function"] = {"feedback" : "In Javascript, this is how you define a function, not Python.",
+                                                "correct" : true};
+            ifButtonInfo["_1"]["fun"] = {"feedback" : "In Standard ML, this is how you define a function, not Python.",
+                                                "correct" : true};
+            ifButtonInfo["_1"]["fn"] = {"feedback" : "This is used for defining anonymous or lambda functions.",
+                                                "correct" : true};
+            ifButtonInfo["_2"]["isEven"] = {"feedback" : "You can name your function anything you want.",
+                                                "correct" : false};
+            ifButtonInfo["_3"][" "] = {"feedback" : "You have to let Python know when you're starting your function.",
+                                                "correct" : true};                              
+            ifButtonInfo["_3"][_3correct] = {"feedback" : "The colon lets Python know that you're writing your function now.",
+                                                "correct" : false};     
+            ifButtonInfo["_3"]["{"] = {"feedback" : "In any C-based language this would be right, but not in Python.",
+                                                "correct" : true};
+            ifButtonInfo["_3"][";"] = {"feedback" : "Close!.",
+                                                "correct" : true};  
+            ifButtonInfo["_4"]["%"] = {"feedback" : "Any arithmetic operator would work here.",
+                                                "correct" : false};
+            ifButtonInfo["_5"][_5correct] = {"feedback" : "This is testing for equality, not variable assignment.",
+                                                "correct" : false};                                                                                                                                 
+            ifButtonInfo["_5"]["="] = {"feedback" : "We are not assigning a variable, but testing for equality.",
+                                                "correct" : true};
+            ifButtonInfo["_6"][_6correct] = {"feedback" : "We are now going into the body of the if statement by this colon.",
+                                                "correct" : false};
+            ifButtonInfo["_6"][" "] = {"feedback" : "We need syntax that will allow Python to recognize that we are entering the if statement.",
+                                                "correct" : true};
+            ifButtonInfo["_6"]["{"] = {"feedback" : "We need syntax that will allow Python to recognize that we are entering the if statement.",
+                                                "correct" : true};
+            ifButtonInfo["_6"][";"] = {"feedback" : "Close!.",
+                                                "correct" : true};
+            ifButtonInfo["_7"][_7correct] = {"feedback" : "After any statement without a body doesn't need anything after it, just a new line.",
+                                                "correct" : false}; 
+            ifButtonInfo["_7"][":"] = {"feedback" : "Nothing is needed after a return statement.",
+                                                "correct" : true};                                                                                                                                                                                                                      
+            ifButtonInfo["_7"]["{"] = {"feedback" : "Nothing is needed after a return statement.",
+                                                "correct" : true};  
+            ifButtonInfo["_7"][";"] = {"feedback" : "Nothing is needed after a return statement.",
+                                                "correct" : true};  
+            ifButtonInfo["_8"][_8correct] = {"feedback" : "We are now going into the body of the else statement by this colon.",
+                                                "correct" : false};
+            ifButtonInfo["_8"][" "] = {"feedback" : "We need syntax that will allow Python to recognize that we are entering the else statement.",
+                                                "correct" : true};      
+            ifButtonInfo["_8"]["{"] = {"feedback" : "We need syntax that will allow Python to recognize that we are entering the else statement.",
+                                                "correct" : true};
+            ifButtonInfo["_8"][";"] = {"feedback" : "We need syntax that will allow Python to recognize that we are entering the else statement.",
+                                                "correct" : true};
+            ifButtonInfo["_9"][_9correct] = {"feedback" : "We don't need anything after a return statement.",
+                                                "correct" : false};
+            ifButtonInfo["_9"][":"] = {"feedback" : "A return statement is fine on its own.",
+                                                "correct" : true};      
+            ifButtonInfo["_9"]["{"] = {"feedback" : "No other syntax needed here.",
+                                                "correct" : true};
+            ifButtonInfo["_9"][";"] = {"feedback" : "No other syntax needed here.",
+                                                "correct" : true};                                                                                                                                                                                                              
 
             var descr = "Click on the syntax errors in the following code excerpt.";
             var code = "";
             var buttonDict = {"_1" : {}, "_2" : {}, "_3" : {}, "_4" : {}, "_5" : {},
-        						"_6" : {}, "_7" : {}, "_8" : {}, "_9" : {}};
+                                "_6" : {}, "_7" : {}, "_8" : {}, "_9" : {}};
             var buttonInfo = {"_1" : {}, "_2" : {}, "_3" : {}, "_4" : {}, "_5" : {},
-        						"_6" : {}, "_7" : {}, "_8" : {}, "_9" : {}};
+                                "_6" : {}, "_7" : {}, "_8" : {}, "_9" : {}};
             if (infoNum == 0) {
-            	code = ifCode;
-            	buttonDict = ifDict;
-            	for (var substring in ifDict) {
-            		buttonInfo[substring] = ifButtonInfo[substring][ifDict[substring]];
-            	}
+                code = ifCode;
+                buttonDict = ifDict;
+                for (var substring in ifDict) {
+                    buttonInfo[substring] = ifButtonInfo[substring][ifDict[substring]];
+                }
             }
             else {
-            	code = loopCode;
-            	buttonDict = loopDict;
-            	for (var substring in loopDict) {
-            		buttonInfo[substring] = loopButtonInfo[substring][loopDict[substring]];
-            	}
+                code = loopCode;
+                buttonDict = loopDict;
+                for (var substring in loopDict) {
+                    buttonInfo[substring] = loopButtonInfo[substring][loopDict[substring]];
+                }
             }
             return {"code" : code, "buttonInfo" : buttonInfo, "buttonDict" : buttonDict, "descr" : descr};
             break;
         case 2:
-        	var variableNames = ["x", "y", "z", "n", "i"];
-    		var functionNames = ["f", "g", "h"];
+            var variableNames = ["x", "y", "z", "n", "i"];
+            var functionNames = ["f", "g", "h"];
             var q2type = getRandomInt(0,1);
             var temp = getRandomInt(0,1);
             var correct_index = 1;
@@ -1594,65 +1601,65 @@ var createCode = function(questionType) {
             var fun2 = functionNames[getRandomInt(0, functionNames.length-1)];
             while (fun2 == fun1) fun2 = functionNames[getRandomInt(0, functionNames.length-1)];
             switch(q2type){
-            	case 0:
-            	    var const1 = String(getRandomInt(0,10));
-            	    var const2 = String(getRandomInt(1,5)); 
-            		var var1 = variableNames[getRandomInt(0, variableNames.length-1)];
+                case 0:
+                    var const1 = String(getRandomInt(0,10));
+                    var const2 = String(getRandomInt(1,5)); 
+                    var var1 = variableNames[getRandomInt(0, variableNames.length-1)];
                     var var2 = variableNames[getRandomInt(0, variableNames.length-1)];
                     while (var2 == var1) var2 = variableNames[getRandomInt(0, variableNames.length-1)];
-            		var correctQ2 = "def "+fun1+"("+var1+"):\n"
-            					   +"    if "+var1+" < "+const1+"\n"
-            					   +"        "+var2+" = "+const2+"\n"
-            					   +"        return "+var2+" + "+var1+"\n" 
-            					   +"    return "+var1
-            	    var wrongQ2 =   "def "+fun2+"("+var1+"):\n"
-            					   +"    if "+var1+" < "+const1+"\n"
-            					   +"        "+var2+" = "+const2+"\n"
-            					   +"    return "+var2+" + "+var1+"\n" 
-            					   +"    return "+var1
-            		if (correct_index == 1){
-            			left = correctQ2;
-            			right = wrongQ2;
-            		}
-            		else{
-            			right = correctQ2;
-            			left = wrongQ2;
-            		}
-            		prompt = "adds "+const2+
-            		      " to an integer if it is less than "+const1;
-            		console.log(left);
-            		return {"leftCode":left,
-            				"rightCode":right,
-            				"question":prompt,
-            				"ca":correct_index};
-            	case 1:
-            		var constant = String(getRandomInt(2,7));
-            		var vari = variableNames[getRandomInt(0, variableNames.length-1)];
-            		var correctQ2 = "def "+fun1+"("+vari+"):\n"
-            					   +"    result = False\n"
-            					   +"    if "+vari+" % "+constant+" == 0:\n"
-            					   +"        result = True\n"
-            					   +"    return result"	;
+                    var correctQ2 = "def "+fun1+"("+var1+"):\n"
+                                   +"    if "+var1+" < "+const1+"\n"
+                                   +"        "+var2+" = "+const2+"\n"
+                                   +"        return "+var2+" + "+var1+"\n" 
+                                   +"    return "+var1
+                    var wrongQ2 =   "def "+fun2+"("+var1+"):\n"
+                                   +"    if "+var1+" < "+const1+"\n"
+                                   +"        "+var2+" = "+const2+"\n"
+                                   +"    return "+var2+" + "+var1+"\n" 
+                                   +"    return "+var1
+                    if (correct_index == 1){
+                        left = correctQ2;
+                        right = wrongQ2;
+                    }
+                    else{
+                        right = correctQ2;
+                        left = wrongQ2;
+                    }
+                    prompt = "adds "+const2+
+                          " to an integer if it is less than "+const1;
+                    console.log(left);
+                    return {"leftCode":left,
+                            "rightCode":right,
+                            "question":prompt,
+                            "ca":correct_index};
+                case 1:
+                    var constant = String(getRandomInt(2,7));
+                    var vari = variableNames[getRandomInt(0, variableNames.length-1)];
+                    var correctQ2 = "def "+fun1+"("+vari+"):\n"
+                                   +"    result = False\n"
+                                   +"    if "+vari+" % "+constant+" == 0:\n"
+                                   +"        result = True\n"
+                                   +"    return result" ;
 
-            	    var wrongQ2 =   "def "+fun1+"("+vari+"):\n"
-            					   +"    result = False\n"
-            					   +"    if "+vari+" % "+constant+" == 0:\n"
-            					   +"        result = True\n"
-            					   +"    	return result"	;
-            		if (correct_index == 1){
-            			left = correctQ2;
-            			right = wrongQ2;
-            		}
-            		else{
-            			right = correctQ2;
-            			left = wrongQ2;
-            		}
-            		prompt = "calculates if an integer is a multiple of "+constant;
-            		console.log(left);
-            		return {"leftCode":left,
-            				"rightCode":right,
-            				"question":prompt,
-            				"ca":correct_index};
+                    var wrongQ2 =   "def "+fun1+"("+vari+"):\n"
+                                   +"    result = False\n"
+                                   +"    if "+vari+" % "+constant+" == 0:\n"
+                                   +"        result = True\n"
+                                   +"       return result"  ;
+                    if (correct_index == 1){
+                        left = correctQ2;
+                        right = wrongQ2;
+                    }
+                    else{
+                        right = correctQ2;
+                        left = wrongQ2;
+                    }
+                    prompt = "calculates if an integer is a multiple of "+constant;
+                    console.log(left);
+                    return {"leftCode":left,
+                            "rightCode":right,
+                            "question":prompt,
+                            "ca":correct_index};
             }
             break;
     };
