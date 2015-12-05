@@ -83,9 +83,10 @@ var main = function (ex) {
                      IndentPrac(leftCode2,rightCode2,
         "print all the prime numbers up to n",1)];
 
-    var vars = createCode(2);
+    var question2qtype = 0;
+    var vars = createCode(2,0);
     var currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
-        vars.question,vars.ca);
+        vars.question,vars.ca,vars.hint);
     //saveData();
     var currentIndex = 0;
         /* Shows the appropriate question type
@@ -162,8 +163,12 @@ var main = function (ex) {
             case 2:
                 /* delete and draw */
                 ex.graphics.ctx.clearRect(0,0,ex.width(),ex.height());
-                console.log("here");
+                var showFeedback = (ex.data.meta.mode != "quiz-immediate");
                 currentIndentPrac.draw();
+                if (currentIndentPrac.submitted){
+                	currentIndentPrac.leftCard.well.off("click");
+                	currentIndentPrac.rightCard.well.off("click");
+                }
                 saveData();
         };
     };
@@ -208,12 +213,14 @@ var main = function (ex) {
                 data.descr = buttonHeader.text();
                 break;
             case 2:
+                data.question2submitted = currentIndentPrac.submitted;
+                data.question2qtype = question2qtype;
                 data.question2LeftCode = currentIndentPrac.leftCode;
                 data.question2RightCode = currentIndentPrac.rightCode;
                 data.question2Question = currentIndentPrac.question;
                 data.question2Ca = currentIndentPrac.ca;
                 data.question2Clicked = currentIndentPrac.clicked;
-                console.log(data.question2LeftCode);
+                //console.log(data.question2LeftCode);
 
                 
         };
@@ -291,6 +298,8 @@ var main = function (ex) {
                     var right = ex.data.instance.state.question2RightCode;
                     var q = ex.data.instance.state.question2Question;
                     var ca = ex.data.instance.state.question2Ca;
+
+                    question2qtype = ex.data.instance.state.question2qtype;
                     currentIndentPrac = IndentPrac(left,right,q,ca);
                     currentIndentPrac.clicked = ex.data.instance.state.question2Clicked;
                     if (currentIndentPrac.clicked == 1){
@@ -298,7 +307,9 @@ var main = function (ex) {
                     }
                     else if (currentIndentPrac.clicked == -1){
                         currentIndentPrac.rightCard.clicked = true;
-                    }               
+                    }
+                    currentIndentPrac.submitted = ex.data.instance.state.question2submitted;
+
             };
             return true;
         };
@@ -373,7 +384,13 @@ var main = function (ex) {
                 ex.showFeedback(feedback);
                 break;
             case 2:
+
                 currentIndentPrac.submit();
+                currentIndentPrac.submitted = true;
+                currentIndentPrac.leftCard.well.off("click");
+                currentIndentPrac.rightCard.well.off("click");
+                saveData();
+                //if (ex.data.meta.mode == "practice") ex.chromeElements.displayCAButton.enable();
                 
         };
         /* Create the next button */
@@ -391,14 +408,15 @@ var main = function (ex) {
             //  if (currentIndex+1 < type2List.length)currentIndex++;
             //  currentIndentPrac = type2List[currentIndex];
             //}
-            if (questionType == 2){
 
-                var vars = createCode(2);
+            questionType = (questionType+1)%3;
+            if (questionType == 2){
+            	question2qtype = (question2qtype+1) % 2
+                var vars = createCode(2,question2qtype);
                 currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
-                    vars.question,vars.ca);
+                    vars.question,vars.ca,vars.hint);
 
             }
-            questionType = (questionType+1)%3;
             if (ex.data.meta.mode == "quiz-immediate") {
                 questionNum++;
                 if (questionNum > totalNumOfQs) {
@@ -544,6 +562,21 @@ var main = function (ex) {
                 ex.chromeElements.submitButton.enable();
                 ex.chromeElements.submitButton.off("click");
                 ex.chromeElements.submitButton.on("click", currentIndentPrac.submit);
+                ex.chromeElements.displayCAButton.disable();
+                ex.chromeElements.displayCAButton.off("click");
+                ex.chromeElements.displayCAButton.on("click", displayCA);
+                ex.chromeElements.undoButton.disable();
+                ex.chromeElements.undoButton.off("click");
+                ex.chromeElements.undoButton.on("click", function () {});
+                ex.chromeElements.redoButton.disable();
+                ex.chromeElements.redoButton.off("click");
+                ex.chromeElements.redoButton.on("click", function () {});
+                ex.chromeElements.resetButton.enable();
+                ex.chromeElements.resetButton.off("click");
+                ex.chromeElements.resetButton.on("click", function () {});
+                ex.chromeElements.newButton.enable();
+                ex.chromeElements.newButton.off("click");
+                ex.chromeElements.newButton.on("click", function () {});
         };
         if (ex.data.meta.mode == "quiz-immediate") {
             ex.chromeElements.submitButton.enable();
@@ -561,8 +594,10 @@ var main = function (ex) {
         if (questionType == 2) showQuestion();
     }
 
-    function CodeCard(left,content){
+    function CodeCard(left,content,ca,hint){
         var code2 = {};
+        code2.ca = ca;
+        code2.hint = hint;
         code2.margin = 10;
         code2.left = left;
         if (code2.left) code2.x = code2.margin;
@@ -585,6 +620,18 @@ var main = function (ex) {
                 }).on("click",function(){
                     code2.clicked = true;
                     code2.highlight();
+                    console.log(code2.ca);
+                    if (!code2.ca){
+                    	console.log("here");
+                    	if (ex.data.meta.mode == "practice"){
+                    		console.log("there");
+                    		ex.alert(hint, {
+                        		fontSize: 20,
+                        		stay: true,
+                        		color:"yellow"
+                    		});
+                    	}
+                    }
                     if (code2.left) {
                         currentIndentPrac.clicked = 1;
                         currentIndentPrac.rightCard.clicked = false;
@@ -614,10 +661,12 @@ var main = function (ex) {
         return code2;
     }
 
-    function IndentPrac(leftCode,rightCode,question,ca){
+    function IndentPrac(leftCode,rightCode,question,ca,hint){
         var q = {}
-        q.leftCard = CodeCard(true,leftCode);
-        q.rightCard = CodeCard(false,rightCode);
+        var leftC = (ca == 1);
+        var rightC = (ca == -1);
+        q.leftCard = CodeCard(true,leftCode,leftC,hint);
+        q.rightCard = CodeCard(false,rightCode,rightC,hint);
         q.question = question;
         q.ca = ca;
         q.clicked = 0;
@@ -626,6 +675,9 @@ var main = function (ex) {
         q.y = ex.height()*3/4;
         q.leftCode = leftCode;
         q.rightCode = rightCode;
+        q.hint = hint;
+        q.submitted = false;
+        //q.explanation = explanation;
         
         q.drawQuestion = function(){
             q.textPara = ex.createParagraph(q.x,q.y,
@@ -655,20 +707,19 @@ var main = function (ex) {
 
         }
         q.submit = function(){
-            /*if (q.clicked == ca){
-                    ex.alert("Correct!",{
-                    fontSize: 20,
-                    stay: true,
-                    color:"green"
-            });
-                }
-                else ex.alert("Incorrect!",{
-                    fontSize: 20,
-                    stay: true,
-                    color:"red"
-            });*/
-            totalPossibleScore += 4;
-            if (q.clicked == ca) score += 4;
+        	if (ex.data.meta.mode == "quiz-immediate"){
+            	if (q.clicked == ca) ex.showFeedback("Correct!");      
+            	else ex.showFeedback("Incorrect!");
+        	}
+        	else{
+        		if (q.clicked == ca) ex.showFeedback("Correct!");
+        		else ex.showFeedback("Incorrect!");
+        	}
+        	if (!q.submitted){
+            	totalPossibleScore += 4;
+            	if (q.clicked == ca) score += 4;
+            	q.submitted = true;
+            }
         }
         return q;
     }
@@ -886,7 +937,7 @@ var clickableCodeWell = function(x, y, width, height, code, buttonInfo, buttonDi
     return {"code" : codeWell, "button" : buttonList};
 };
 
-var createCode = function(questionType) {
+var createCode = function(questionType,q2type) {
     
     switch (questionType) {
         case 0:
@@ -1589,7 +1640,7 @@ var createCode = function(questionType) {
         case 2:
             var variableNames = ["x", "y", "z", "n", "i"];
             var functionNames = ["f", "g", "h"];
-            var q2type = getRandomInt(0,1);
+            //var q2type = getRandomInt(0,1);
             var temp = getRandomInt(0,1);
             var correct_index = 1;
             var left;
@@ -1602,7 +1653,7 @@ var createCode = function(questionType) {
             while (fun2 == fun1) fun2 = functionNames[getRandomInt(0, functionNames.length-1)];
             switch(q2type){
                 case 0:
-                    var const1 = String(getRandomInt(0,10));
+                    var const1 = String(getRandomInt(5,10));
                     var const2 = String(getRandomInt(1,5)); 
                     var var1 = variableNames[getRandomInt(0, variableNames.length-1)];
                     var var2 = variableNames[getRandomInt(0, variableNames.length-1)];
@@ -1611,12 +1662,15 @@ var createCode = function(questionType) {
                                    +"    if "+var1+" < "+const1+"\n"
                                    +"        "+var2+" = "+const2+"\n"
                                    +"        return "+var2+" + "+var1+"\n" 
-                                   +"    return "+var1
+                                   +"    return "+var1;
                     var wrongQ2 =   "def "+fun2+"("+var1+"):\n"
                                    +"    if "+var1+" < "+const1+"\n"
                                    +"        "+var2+" = "+const2+"\n"
                                    +"    return "+var2+" + "+var1+"\n" 
-                                   +"    return "+var1
+                                   +"    return "+var1;
+
+                    var rdmnum = getRandomInt(0,const1);
+                    var hint = "What will "+fun2+"("+String(rdmnum)+") return?";
                     if (correct_index == 1){
                         left = correctQ2;
                         right = wrongQ2;
@@ -1631,9 +1685,11 @@ var createCode = function(questionType) {
                     return {"leftCode":left,
                             "rightCode":right,
                             "question":prompt,
-                            "ca":correct_index};
+                            "ca":correct_index,
+                            "hint":hint};
                 case 1:
-                    var constant = String(getRandomInt(2,7));
+                    var constantnum = getRandomInt(2,7); 
+                    var constant = String(constantnum);
                     var vari = variableNames[getRandomInt(0, variableNames.length-1)];
                     var correctQ2 = "def "+fun1+"("+vari+"):\n"
                                    +"    result = False\n"
@@ -1641,11 +1697,11 @@ var createCode = function(questionType) {
                                    +"        result = True\n"
                                    +"    return result" ;
 
-                    var wrongQ2 =   "def "+fun1+"("+vari+"):\n"
+                    var wrongQ2 =   "def "+fun2+"("+vari+"):\n"
                                    +"    result = False\n"
                                    +"    if "+vari+" % "+constant+" == 0:\n"
                                    +"        result = True\n"
-                                   +"       return result"  ;
+                                   +"        return result"  ;
                     if (correct_index == 1){
                         left = correctQ2;
                         right = wrongQ2;
@@ -1654,12 +1710,17 @@ var createCode = function(questionType) {
                         right = correctQ2;
                         left = wrongQ2;
                     }
+                    var rdmnum = getRandomInt(1,constantnum-1);
+                    var mult = getRandomInt(2,6);
+                    var finalnum = rdmnum + (mult * constantnum);
+                    var hint = "What will "+fun2+"("+String(finalnum)+") return?";
                     prompt = "calculates if an integer is a multiple of "+constant;
                     console.log(left);
                     return {"leftCode":left,
                             "rightCode":right,
                             "question":prompt,
-                            "ca":correct_index};
+                            "ca":correct_index,
+                            "hint":hint};
             }
             break;
     };
