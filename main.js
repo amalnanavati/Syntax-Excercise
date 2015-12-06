@@ -28,6 +28,7 @@ var main = function (ex) {
     var buttonHeader = undefined;
     var buttonDict = undefined;
     var pressedButtons = [];
+    var indexPressedButtons = [];
 
     /* Used in question type 0, this is a list of dropdowns and the correct 
      * answer for each dropdown, the code well, and the header
@@ -150,15 +151,35 @@ var main = function (ex) {
                 
                 for (var i = 0; i < buttonList.length; i++) {
                     if (buttonList[i]["correct"] == true) {
+                        buttonList[i]["button"].index = i;
                         buttonList[i]["button"].on("click", function() {
-                            pressedButtons.push(true);
-                            this.style({color : "blue"});
+                            var index = indexPressedButtons.indexOf(this.index);
+                            if (index > -1) {
+                                pressedButtons.splice(index,1);
+                                indexPressedButtons.splice(index,1);
+                                this.style({color : "white"});
+                            }
+                            else {
+                                pressedButtons.push(true);
+                                indexPressedButtons.push(this.index);
+                                this.style({color : "blue"});
+                            }
                         });
                     }
                     else {
+                        buttonList[i]["button"].index = i;
                         buttonList[i]["button"].on("click", function() {
-                            pressedButtons.push(false);
-                            this.style({color : "blue"});
+                            var index = indexPressedButtons.indexOf(this.index);
+                            if (index > -1) {
+                                pressedButtons.splice(index, 1);
+                                indexPressedButtons.splice(index,1);
+                                this.style({color : "white"});
+                            }
+                            else {
+                                pressedButtons.push(false);
+                                indexPressedButtons.push(this.index);
+                                this.style({color : "blue"});
+                            }
                         });
                     }
                 }
@@ -410,6 +431,7 @@ var main = function (ex) {
             case 1:
                 console.log(pressedButtons);
                 var numOfCorrectButtons = 0;
+                var numOfWrongButtons = 0;
                 var total = 0;
                 if (buttonList == undefined) {
                     throw "buttonList is undefined!";
@@ -429,13 +451,17 @@ var main = function (ex) {
                     if (pressedButtons[i] == true) {
                         numOfCorrectButtons++;
                     }
+                    else {
+                        numOfWrongButtons++;
+                    }
                 }
                 pressedButtons = [];
-                score = score + numOfCorrectButtons;
+                score = score + numOfCorrectButtons - numOfWrongButtons;
                 totalPossibleScore = totalPossibleScore + total;
                 var beginning = "";
                 if (numOfCorrectButtons == total) beginning = "Congratulations! ";
                 var feedback = beginning.concat("You got ").concat(String(numOfCorrectButtons)).concat(" buttons correct out of ").concat(String(total)).concat(". Press 'Next' to move on.");
+                if (numOfWrongButtons > 0) feedback = feedback.concat(" You also pressed ").concat(String(numOfWrongButtons)).concat(" button(s) incorrectly.")
                 showFeedback(feedback);
                 break;
             case 2:
