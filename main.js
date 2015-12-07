@@ -8,14 +8,14 @@
 var main = function (ex) {
 
     //ex.data.meta.mode = "practice";
-    //ex.data.instance.state = {};
+    ex.data.instance.state = {};
 
     /* 0 = code with dropdown
      * 1 = code with click-the-error
      * 2 = sode with different whitespaces
      */
     var questionType = 0;
-
+    
     /* Which question number we are on (useful if we only want 10 questions) */
     var questionNum = 1;
     var totalNumOfQs = 9;
@@ -147,7 +147,7 @@ var main = function (ex) {
                 var dict = clickableCodeWell(x, y, width, height, buttonCode, buttonInfo, buttonDict, pressedButtons, showFeedback, showFeedback, true);
                 buttonList = dict["button"];
                 console.log(buttonList);
-                buttonCode = dict["code"];
+                buttonCodeWell = dict["code"];
                 
                 for (var i = 0; i < buttonList.length; i++) {
                     if (buttonList[i]["correct"] == true) {
@@ -164,6 +164,7 @@ var main = function (ex) {
                                 indexPressedButtons.push(this.index);
                                 this.style({color : "blue"});
                             }
+                            saveData();
                         });
                     }
                     else {
@@ -180,6 +181,7 @@ var main = function (ex) {
                                 indexPressedButtons.push(this.index);
                                 this.style({color : "blue"});
                             }
+                            saveData();
                         });
                     }
                 }
@@ -191,8 +193,8 @@ var main = function (ex) {
                 var showFeedback = (ex.data.meta.mode != "quiz-immediate");
                 currentIndentPrac.draw();
                 if (currentIndentPrac.submitted){
-                	currentIndentPrac.leftCard.well.off("click");
-                	currentIndentPrac.rightCard.well.off("click");
+                    currentIndentPrac.leftCard.well.off("click");
+                    currentIndentPrac.rightCard.well.off("click");
                 }
                 break;
         };
@@ -248,6 +250,8 @@ var main = function (ex) {
                 data.buttonInfo = jQuery.extend(true, {}, buttonInfo);
                 data.buttonDict = jQuery.extend(true, {}, buttonDict);
                 data.descr = buttonHeader.text();
+                data.pressedButtons = pressedButtons;
+                data.indexPressedButtons = indexPressedButtons;
                 break;
             case 2:
                 data.question2submitted = currentIndentPrac.submitted;
@@ -351,6 +355,8 @@ var main = function (ex) {
                     buttonInfo = ex.data.instance.state.buttonInfo;
                     buttonDict = ex.data.instance.state.buttonDict;
                     var descr = ex.data.instance.state.descr;
+                    pressedButtons = ex.data.instance.state.pressedButtons;
+                    indexPressedButtons = ex.data.instance.state.indexPressedButtons;
                     buttonHeader = ex.createParagraph(0,0,descr,{size : "xlarge", width : ex.width(), textAlign : "center"});
                     var margin = 50;
                     var x = 50;
@@ -359,9 +365,46 @@ var main = function (ex) {
                     var height = ex.height() - y - margin;
 
                     var showFeedbackBool = (ex.data.meta.mode != "quiz-immediate");
-                    var dict = clickableCodeWell(x, y, width, height, buttonCode, buttonInfo, showFeedbackBool, showFeedbackBool, true)
+                    var dict = clickableCodeWell(x, y, width, height, buttonCode, buttonInfo, buttonDict, showFeedbackBool, showFeedbackBool, true)
                     buttonList = dict["button"];
                     buttonCodeWell = dict["code"];
+
+                    for (var i = 0; i < buttonList.length; i++) {
+                        if (buttonList[i]["correct"] == true) {
+                            buttonList[i]["button"].index = i;
+                            buttonList[i]["button"].on("click", function() {
+                                var index = indexPressedButtons.indexOf(this.index);
+                                if (index > -1) {
+                                    pressedButtons.splice(index,1);
+                                    indexPressedButtons.splice(index,1);
+                                    this.style({color : "white"});
+                                }
+                                else {
+                                    pressedButtons.push(true);
+                                    indexPressedButtons.push(this.index);
+                                    this.style({color : "blue"});
+                                }
+                                saveData();
+                            });
+                        }
+                        else {
+                            buttonList[i]["button"].index = i;
+                            buttonList[i]["button"].on("click", function() {
+                                var index = indexPressedButtons.indexOf(this.index);
+                                if (index > -1) {
+                                    pressedButtons.splice(index, 1);
+                                    indexPressedButtons.splice(index,1);
+                                    this.style({color : "white"});
+                                }
+                                else {
+                                    pressedButtons.push(false);
+                                    indexPressedButtons.push(this.index);
+                                    this.style({color : "blue"});
+                                }
+                                saveData();
+                            });
+                        }
+                    }
                     break;
                 case 2:
 
@@ -463,6 +506,7 @@ var main = function (ex) {
                 var feedback = beginning.concat("You got ").concat(String(numOfCorrectButtons)).concat(" buttons correct out of ").concat(String(total)).concat(". Press 'Next' to move on.");
                 if (numOfWrongButtons > 0) feedback = feedback.concat(" You also pressed ").concat(String(numOfWrongButtons)).concat(" button(s) incorrectly.")
                 showFeedback(feedback);
+                if (ex.data.meta.mode == "practice") ex.chromeElements.displayCAButton.enable();
                 break;
             case 2:
 
@@ -618,9 +662,11 @@ var main = function (ex) {
                 };
                 break;
             case 1:
-                ex.chromeElements.submitButton.enable();
-                ex.chromeElements.submitButton.off("click");
-                ex.chromeElements.submitButton.on("click", submit);
+                // if (isCorrectAnswerBeingDisplayed) {
+                //     for (var i = 0; i < buttonList.length; i++) {
+                //         buttonList[i].
+                //     }
+                // }
                 break;
             case 2:
                 break;
@@ -717,13 +763,13 @@ var main = function (ex) {
                     code2.highlight();
                     console.log(code2.ca);
                     if (!code2.ca){
-                    	if (ex.data.meta.mode == "practice"){
-                    		ex.alert(hint, {
-                        		fontSize: 20,
-                        		stay: true,
-                        		color:"yellow"
-                    		});
-                    	}
+                        if (ex.data.meta.mode == "practice"){
+                            ex.alert(hint, {
+                                fontSize: 20,
+                                stay: true,
+                                color:"yellow"
+                            });
+                        }
                     }
                     if (code2.left) {
                         currentIndentPrac.clicked = 1;
@@ -801,29 +847,34 @@ var main = function (ex) {
 
         }
         q.submit = function(){
-        	if (ex.data.meta.mode == "quiz-immediate"){
-            	if (q.clicked == ca) showFeedback("Correct!");      
-            	else showFeedback("Incorrect!");
-        	}
-        	else{
-        		if (q.clicked == ca) showFeedback("Correct!");
-        		else showFeedback("Incorrect!");
-        	}
-        	if (!q.submitted){
-            	totalPossibleScore += 4;
-            	if (q.clicked == ca) score += 4;
-            	q.submitted = true;
+            if (ex.data.meta.mode == "quiz-immediate"){
+                if (q.clicked == ca) showFeedback("Correct!");      
+                else showFeedback("Incorrect!");
+            }
+            else{
+                if (q.clicked == ca) showFeedback("Correct!");
+                else showFeedback("Incorrect!");
+            }
+            if (!q.submitted){
+                totalPossibleScore += 4;
+                if (q.clicked == ca) score += 4;
+                q.submitted = true;
             }
         }
         return q;
     }
 
     var clickableCodeWell = function(x, y, width, height, code, buttonInfo, buttonDict, showFeedbackIfCorrect, showFeedbackIfWrong, randomDefault) {
-    
+        
+        console.log("clickableCodeWell");
+        console.log(ex.data.instance.state);
+        console.log(ex.data.instance.state.indexPressedButtons);
+        console.log(ex.data.instance.state.pressedButtons);
         /* Create the code well */
         buttonCodeWell = ex.createCode(x, y, code, {size:"large", width:width, height:height});
     
         var buttonList = [];
+        var buttonIndex = 0;
         for (var substring in buttonInfo) {
             var defaultStr = buttonDict[substring];
             var correct = buttonInfo[substring]["correct"];
@@ -831,29 +882,53 @@ var main = function (ex) {
             if (correct) {
                 if (showFeedbackIfCorrect) {
                     feedback = buttonInfo[substring]["feedback"];
-                    feedback = "Correct!  ".concat(feedback);
-                    var message = ex.alert(feedback, {
-                        fontSize: 20,
-                        stay: true,
-                        color:"green"
-                    });
+                    // feedback = "Correct!  ".concat(feedback);
+                    // var message = ex.alert(feedback, {
+                    //     fontSize: 20,
+                    //     stay: true,
+                    //     color:"green"
+                    // });
                 }
             }
             else {
                 if (showFeedbackIfWrong) {
                     feedback = buttonInfo[substring]["feedback"];
-                    feedback = "Incorrect!  ".concat(feedback);
-                    var message = ex.alert(feedback, {
-                        fontSize: 20,
-                        stay: true,
-                        color:"red"
-                    });
+                    // feedback = "Incorrect!  ".concat(feedback);
+                    // var message = ex.alert(feedback, {
+                    //     fontSize: 20,
+                    //     stay: true,
+                    //     color:"red"
+                    // });
                 }
             }
             
-            var codeButton = ex.createButton(0,0,defaultStr);
+            if (wasSubmitButtonClicked) {
+                if (correct) {
+                    var codeButton = ex.createButton(0,0,defaultStr, {color : "green"});
+                    codeButton.disable();
+                }
+                else {
+                    var codeButton = ex.createButton(0,0,defaultStr, {color : "red"});
+                    codeButton.disable();
+                }
+            }
+            else {
+                if (ex.data.instance.state.indexPressedButtons === undefined) {
+                    var codeButton = ex.createButton(0,0,defaultStr);
+                }
+                else {
+                    if (ex.data.instance.state.indexPressedButtons.indexOf(buttonIndex) > -1) {
+                        var codeButton = ex.createButton(0,0,defaultStr,{color : "blue"});
+                    }
+                    else {
+                        var codeButton = ex.createButton(0,0,defaultStr);
+                    }
+                }
+            }
+            
             ex.insertDropdown(buttonCodeWell, substring, codeButton);
             buttonList.push({"button" : codeButton, "correct" : buttonInfo[substring]["correct"]});
+            buttonIndex++;
         }
         console.log(pressedButtons);
         return {"code" : buttonCodeWell, "button" : buttonList};
@@ -960,61 +1035,6 @@ var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdow
         };
     };
     return {"code" : codeWell, "dropdown" : dropdownList};
-};
-
-var clickableCodeWell = function(x, y, width, height, code, buttonInfo, buttonDict, showFeedbackIfCorrect, showFeedbackIfWrong, randomDefault) {
-    /* Success and failure functions, which will be called when the user selects
-     * an option on the dropdown
-     */
-    var getSuccessFn = function (feedback) {
-        return function () {
-            feedback = "Correct!  ".concat(feedback);
-            var message = ex.alert(feedback, {
-                    fontSize: 20,
-                    stay: true,
-                    color:"green"
-            });
-        };
-    };
-    var getFailureFn = function (feedback) {
-        return function () {
-            feedback = "Incorrect!  ".concat(feedback);
-            var message = ex.alert(feedback, {
-                    fontSize: 20,
-                    stay: true,
-                    color:"red"
-            });
-        };
-    };
-
-    /* Create the code well */
-    var codeWell = ex.createCode(x, y, code, {size:"large", width:width, height:height});
-
-    var buttonList = [];
-    for (var substring in buttonInfo) {
-        var defaultStr = buttonDict[substring];
-        var correct = buttonInfo[substring]["correct"];
-        var feedback = undefined;
-        var elements = {};
-        if (correct) {
-            if (showFeedbackIfCorrect) {
-                feedback = buttonInfo[substring]["feedback"];
-            }
-            elements[option] = getSuccessFn(buttonInfo[substring]["feedback"]);
-        }
-        else {
-            if (showFeedbackIfWrong) {
-                feedback = buttonInfo[substring]["feedback"];
-            }
-            elements[option] = getFailureFn(buttonInfo[substring]["feedback"]);
-        }
-
-        var codeButton = ex.createButton(0,0,defaultStr);
-        ex.insertDropdown(codeWell, substring, codeButton);
-        buttonList.push({"button" : codeButton, "correct" : buttonInfo[substring]["correct"]});
-    }
-    
-    return {"code" : codeWell, "button" : buttonList};
 };
 
 var createCode = function(questionType,q2type) {
@@ -1697,7 +1717,8 @@ var createCode = function(questionType,q2type) {
             ifButtonInfo["_9"][";"] = {"feedback" : "No other syntax needed here.",
                                                 "correct" : true};                                                                                                                                                                                                              
 
-            var descr = "Click on the syntax errors in the following code excerpt.";
+            var descr = "Click on the syntax errors in the following code excerpt. Blue buttons mean you've selected a button." +
+                        " Click again to deselect. Blank buttons represent white space/no syntax needed.";
             var code = "";
             var buttonDict = {"_1" : {}, "_2" : {}, "_3" : {}, "_4" : {}, "_5" : {},
                                 "_6" : {}, "_7" : {}, "_8" : {}, "_9" : {}};
