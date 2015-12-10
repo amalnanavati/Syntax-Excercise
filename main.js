@@ -858,14 +858,14 @@ var main = function (ex) {
 
         }
         q.submit = function(){
-            var text = "Click on next to move on";
+            var text = "Click on next to move on.";
         	if (ex.data.meta.mode == "quiz-immediate"){
-            	if (q.clicked == ca) showFeedback(text+"Correct!");      
-            	else showFeedback(text+"Incorrect!");
+            	if (q.clicked == ca) showFeedback("Correct! "+text);      
+            	else showFeedback("Incorrect! "+text);
         	}
         	else{
-        		if (q.clicked == ca) showFeedback(text+"Correct!");
-        		else showFeedback(text+"Incorrect!");
+        		if (q.clicked == ca) showFeedback("Correct! "+text);
+        		else showFeedback("Incorrect! " +text );
         	}
         	if (!q.submitted){
             	totalPossibleScore += 4;
