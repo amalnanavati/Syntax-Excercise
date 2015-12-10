@@ -7,7 +7,7 @@
  */
 var main = function (ex) {
 
-    //ex.data.meta.mode = "practice";
+    ex.data.meta.mode = "practice";
     //ex.data.instance.state = {};
 
     /* 0 = code with dropdown
@@ -471,7 +471,7 @@ var main = function (ex) {
                 currentIndentPrac.leftCard.well.off("click");
                 currentIndentPrac.rightCard.well.off("click");
                 saveData();
-                //if (ex.data.meta.mode == "practice") ex.chromeElements.displayCAButton.enable();
+                if (ex.data.meta.mode == "practice") ex.chromeElements.displayCAButton.enable();
                 
         };
         createNextButton(buttonText);
@@ -623,6 +623,8 @@ var main = function (ex) {
                 ex.chromeElements.submitButton.on("click", submit);
                 break;
             case 2:
+                currentIndentPrac.clear();
+                currentIndentPrac.draw();
                 break;
         };
         isCorrectAnswerBeingDisplayed = !isCorrectAnswerBeingDisplayed;
@@ -713,6 +715,7 @@ var main = function (ex) {
                  width:code2.width,
                  height:code2.height
                 }).on("click",function(){
+                    if (isCorrectAnswerBeingDisplayed) return;
                     code2.clicked = true;
                     code2.highlight();
                     console.log(code2.ca);
@@ -738,6 +741,11 @@ var main = function (ex) {
                     );
             ex.graphics.ctx.strokeStyle = "grey";
             ex.graphics.ctx.strokeRect(code2.x,code2.y,code2.width,code2.height);
+            if (isCorrectAnswerBeingDisplayed){
+                if (code2.ca) code2.highlight("green");
+                else code2.highlight("red");
+                return;
+            }
             if (code2.clicked) code2.highlight();
         }
         code2.clear = function(){
@@ -747,8 +755,9 @@ var main = function (ex) {
                 code2.well.remove();
             }
         }
-        code2.highlight = function(){
-            ex.graphics.ctx.strokeStyle = "red";
+        code2.highlight = function(color){
+            if (color == undefined) ex.graphics.ctx.strokeStyle = "blue";
+            else ex.graphics.ctx.strokeStyle = color;
             ex.graphics.ctx.strokeRect(code2.x-4,code2.y-2,code2.width+6,code2.height+4);
         }
         return code2;
@@ -775,7 +784,7 @@ var main = function (ex) {
         q.drawQuestion = function(){
             q.textPara = ex.createParagraph(q.x,q.y,
                 "Click on the code that correctly "+q.question,
-                {size: "xlarge", width:ex.width(), textAlign:"center"});
+                {size: "xlarge", width:ex.width()-100, textAlign:"center"});
         }
         q.draw = function(){
             q.leftCard.draw();
@@ -801,13 +810,14 @@ var main = function (ex) {
 
         }
         q.submit = function(){
+            var text = "Click on next to move on";
         	if (ex.data.meta.mode == "quiz-immediate"){
-            	if (q.clicked == ca) showFeedback("Correct!");      
-            	else showFeedback("Incorrect!");
+            	if (q.clicked == ca) showFeedback(text+"Correct!");      
+            	else showFeedback(text+"Incorrect!");
         	}
         	else{
-        		if (q.clicked == ca) showFeedback("Correct!");
-        		else showFeedback("Incorrect!");
+        		if (q.clicked == ca) showFeedback(text+"Correct!");
+        		else showFeedback(text+"Incorrect!");
         	}
         	if (!q.submitted){
             	totalPossibleScore += 4;
