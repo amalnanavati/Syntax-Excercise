@@ -445,12 +445,10 @@ var main = function (ex) {
                     throw "AMAL-DEFINED EXCEPTION: dropdownList is undefined";
                 };
                 for (var i = 0; i < dropdownList.length; i++) {
-                    var currText = dropdownList[i].dropdown.text();
-                    currText = currText.slice(0, currText.indexOf('<span class="caret">'));
-                    currText = decodeHTMLEntities(currText);
+                    var currText = dropdownToDefaultLabel(dropdownList[i].dropdown);
                     console.log(currText);
                     console.log(dropdownList[i].correct);
-                    if (currText.indexOf(dropdownList[i].correct) > -1) {
+                    if (currText == dropdownList[i].correct) {
                         numOfCorrectDropdowns = numOfCorrectDropdowns + 1;
                         dropdownList[i].dropdown.style({color: "green"});
                         oldColors[i] = "green";
@@ -1148,7 +1146,7 @@ var createCode = function(questionType,q2type) {
                     dropdownInfo["'_4'"][choice41] = {"feedback" : "What, if anything, goes at the end of every line?",
                                                                 "correct" : false,
                                                                 "default" : true};
-                    dropdownInfo["'_4'"][choice42] = {"feedback" : "You need an operator between the 5 and the x.",
+                    dropdownInfo["'_4'"][choice42] = {"feedback" : "You need an operator between the number and the variable.",
                                                                 "correct" : false,
                                                                 "default" : false};
                     dropdownInfo["'_4'"][correct4] = {"feedback" : "Python does not use any symbol to indicate the end of a line.",
@@ -1501,14 +1499,14 @@ var createCode = function(questionType,q2type) {
                             var correct1 = " = 0";
                             var correct2 = "while (";
                             var correct3 = "/= 2";
-                            var correct4 = "+= 1";
+                            var correct4 = "+=";
                             var correct5 = "return ";
                             if (print == 1) correct5 = "print(";
 
                             /* Sample target code:
                              *var targetCode = "def log(x):\n    i = 0\n    while x > 1:\n        x /= 2\n        i+=1\n    return i";
                              */
-                            var code = "def log(".concat(variable1).concat("):\n    ").concat(variable2).concat("<span>'_1'</span>\n    <span>'_2'</span> ").concat(variable1).concat(" > 1):\n        ").concat(variable1).concat(" <span>'_3'</span>\n        ").concat(variable2).concat(" <span>'_4'</span>\n    <span>'_5'</span>").concat(endVar);
+                            var code = "def log(".concat(variable1).concat("):\n    ").concat(variable2).concat("<span>'_1'</span>\n    <span>'_2'</span> ").concat(variable1).concat(" > 1):\n        ").concat(variable1).concat(" <span>'_3'</span>\n        ").concat(variable2).concat(" <span>'_4'</span> 1\n    <span>'_5'</span>").concat(endVar);
 
                             //Limit number of dropdowns (i.e. don't have 5)
                             var numOfDropdowns = getRandomInt(4, 5);
@@ -1549,7 +1547,7 @@ var createCode = function(questionType,q2type) {
                             dropdownInfo["'_1'"][" 0"] = {"feedback" : "What symbol do you use to assign a variable?",
                                                                         "correct" : false,
                                                                         "default" : false};
-                            dropdownInfo["'_2'"]["for "] = {"feedback" : "Do you want to loop a fixed number of times, or an unknown number of times??",
+                            dropdownInfo["'_2'"]["for "] = {"feedback" : "Do you want to loop a fixed number of times, or an unknown number of times?",
                                                                         "correct" : false,
                                                                         "default" : false};
                             dropdownInfo["'_2'"]["if "] = {"feedback" : "Do you want to merely go through the body once, or multiple times?",
@@ -1579,7 +1577,7 @@ var createCode = function(questionType,q2type) {
                             dropdownInfo["'_4'"]["="] = {"feedback" : "Are you sure you just want to assign the variable?",
                                                                         "correct" : false,
                                                                         "default" : false};
-                            dropdownInfo["'_4'"]["=+"] = {"feedback" : "What order should the = and *+ go in?",
+                            dropdownInfo["'_4'"]["=+"] = {"feedback" : "What order should the = and + go in?",
                                                                         "correct" : false,
                                                                         "default" : false};
                             dropdownInfo["'_5'"][correct5] = {"feedback" : correctFeedback5,
