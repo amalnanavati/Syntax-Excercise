@@ -210,9 +210,7 @@ var main = function (ex) {
 
                 }
                 question2qtype = (question2qtype+1) % 2
-                var vars = createCode(2,question2qtype);
-                currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
-                    vars.question,vars.ca,vars.hint);
+
                 break;
         };
         saveData();
@@ -589,8 +587,10 @@ var main = function (ex) {
 
             questionType = (questionType+1)%3;
             if (questionType == 2){
-                
-
+                var vars = createCode(2,question2qtype);
+                currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
+                    vars.question,vars.ca,vars.hint);
+                saveData();
             }
             if (ex.data.meta.mode == "quiz-immediate") {
                 questionNum++;
@@ -746,6 +746,12 @@ var main = function (ex) {
         }
         console.log("reset");
         deleteAll();
+        if (questionType == 2){
+            var vars = createCode(2,question2qtype);
+            currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
+                vars.question,vars.ca,vars.hint);
+            saveData();
+        }
         showQuestion();
         console.log("showedQuestion");
         // switch (questionType) {
@@ -944,15 +950,15 @@ var main = function (ex) {
             else {
                 q.cCard.highlight("green");
             }
-        	if (ex.data.meta.mode == "quiz-immediate"){
-            	if (q.clicked == ca) showFeedback("Correct! "+text);      
-            	else showFeedback("Incorrect! "+text);
-        	}
-        	else{
-        		if (q.clicked == ca) showFeedback("Correct! "+text);
-        		else showFeedback("Incorrect! " +text );
-        	}
-        	
+            if (ex.data.meta.mode == "quiz-immediate"){
+                if (q.clicked == ca) showFeedback("Correct! "+text);      
+                else showFeedback("Incorrect! "+text);
+            }
+            else{
+                if (q.clicked == ca) showFeedback("Correct! "+text);
+                else showFeedback("Incorrect! " +text );
+            }
+            
         }
         return q;
     }
