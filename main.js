@@ -204,6 +204,10 @@ var main = function (ex) {
                     currentIndentPrac.submit();
 
                 }
+                question2qtype = (question2qtype+1) % 2
+                var vars = createCode(2,question2qtype);
+                currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
+                    vars.question,vars.ca,vars.hint);
                 break;
         };
         saveData();
@@ -580,10 +584,7 @@ var main = function (ex) {
 
             questionType = (questionType+1)%3;
             if (questionType == 2){
-                question2qtype = (question2qtype+1) % 2
-                var vars = createCode(2,question2qtype);
-                currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
-                    vars.question,vars.ca,vars.hint);
+                
 
             }
             if (ex.data.meta.mode == "quiz-immediate") {
