@@ -1194,7 +1194,7 @@ var createCode = function(questionType,q2type) {
                     dropdownInfo["'_1'"][correct1] = {"feedback" : "Functions are declared with def, followed by the function name and a pair of parenthises with the argument(s).",
                                                                 "correct" : true,
                                                                 "default" : true};
-                    dropdownInfo["'_1'"][choice12] = {"feedback" : "Are you sure you need boh def and function?",
+                    dropdownInfo["'_1'"][choice12] = {"feedback" : "Are you sure you need both def and function?",
                                                                 "correct" : false,
                                                                 "default" : false};
                     dropdownInfo["'_1'"][choice13] = {"feedback" : "What do you put before every function definition?",
@@ -1624,10 +1624,10 @@ var createCode = function(questionType,q2type) {
                             dropdownInfo["'_1'"][" 0"] = {"feedback" : "What symbol do you use to assign a variable?",
                                                                         "correct" : false,
                                                                         "default" : false};
-                            dropdownInfo["'_2'"]["for "] = {"feedback" : "Do you want to loop a fixed number of times, or an unknown number of times?",
+                            dropdownInfo["'_2'"]["for ("] = {"feedback" : "Do you want to loop a fixed number of times, or an unknown number of times?",
                                                                         "correct" : false,
                                                                         "default" : false};
-                            dropdownInfo["'_2'"]["if "] = {"feedback" : "Do you want to merely go through the body once, or multiple times?",
+                            dropdownInfo["'_2'"]["if ("] = {"feedback" : "Do you want to merely go through the body once, or multiple times?",
                                                                         "correct" : false,
                                                                         "default" : true};
                             dropdownInfo["'_2'"][correct2] = {"feedback" : "A while loop continually iterates until the conditional following it is false.",
