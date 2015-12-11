@@ -199,6 +199,8 @@ var main = function (ex) {
                 if (currentIndentPrac.submitted){
                     currentIndentPrac.leftCard.well.off("click");
                     currentIndentPrac.rightCard.well.off("click");
+                    currentIndentPrac.submit();
+
                 }
                 break;
         };
@@ -640,11 +642,12 @@ var main = function (ex) {
                     question0CodeWell.remove();
                     question0CodeWell = undefined;
                 }
+                if (dropdownList != undefined){
                 for (var i = 0; i < dropdownList.length; i++) {
                     console.log("removed dropdown ".concat(String(i)));
                     /* Remove dropdown */
                     dropdownList[i].dropdown.remove();
-                };
+                };}
                 dropdownList = undefined;
                 break;
             case 1:
@@ -783,7 +786,7 @@ var main = function (ex) {
         code2.well = undefined;
         code2.clicked = false;
          
-        code2.draw = function(){
+        code2.draw = function(color){
             //console.log(code2.width,code2.height);
             code2.well = ex.createCode(code2.x,code2.y,code2.content,
                 {language:"python",
@@ -823,7 +826,7 @@ var main = function (ex) {
                 else code2.highlight("red");
                 return;
             }
-            if (code2.clicked) code2.highlight();
+            if (code2.clicked) code2.highlight(color);
         }
         code2.clear = function(){
             ex.graphics.ctx.clearRect(code2.x-code2.margin,code2.y-code2.margin,
@@ -846,6 +849,8 @@ var main = function (ex) {
         var rightC = (ca == -1);
         q.leftCard = CodeCard(true,leftCode,leftC,hint);
         q.rightCard = CodeCard(false,rightCode,rightC,hint);
+        if (ca == 1) q.cCard = q.leftCard;
+        else q.cCard = q.rightCard;
         q.question = question;
         q.ca = ca;
         q.clicked = 0;
@@ -887,7 +892,28 @@ var main = function (ex) {
 
         }
         q.submit = function(){
-            var text = "Click on next to move on.";
+            var text;
+            if (questionNum == totalNumOfQs) text = "Click on end to complete the quiz."; 
+            else text = "Click on next to move on.";
+            if (!q.submitted){
+                totalPossibleScore += 4;
+                if (q.clicked == ca) score += 4;
+                q.submitted = true;
+
+            }
+            if (q.clicked == 0) {
+                if (ca == 1) q.leftCard.highlight("green");
+                else q.rightCard.highlight("green");
+                showFeedback("Incorrect! "+text);
+                return;
+            }
+            if (q.clicked == ca){
+                q.cCard.clear();
+                q.cCard.draw("green");
+            }
+            else {
+                q.cCard.highlight("green");
+            }
         	if (ex.data.meta.mode == "quiz-immediate"){
             	if (q.clicked == ca) showFeedback("Correct! "+text);      
             	else showFeedback("Incorrect! "+text);
@@ -896,12 +922,7 @@ var main = function (ex) {
         		if (q.clicked == ca) showFeedback("Correct! "+text);
         		else showFeedback("Incorrect! " +text );
         	}
-        	if (!q.submitted){
-            	totalPossibleScore += 4;
-            	if (q.clicked == ca) score += 4;
-            	q.submitted = true;
-
-            }
+        	
         }
         return q;
     }
