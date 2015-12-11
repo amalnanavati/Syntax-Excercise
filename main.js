@@ -728,6 +728,11 @@ var main = function (ex) {
     /* Handles clicks to the reset button
      */
     var reset = function () {
+        if (feedbackAlert !== undefined) {
+            feedbackAlert.remove();
+            feedbackAlert = undefined;
+            isFeedbackShowing = false;
+        }
         console.log("reset");
         deleteAll();
         showQuestion();
