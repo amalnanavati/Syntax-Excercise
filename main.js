@@ -9,7 +9,7 @@ var main = function (ex) {
 
 
     //ex.data.meta.mode = "practice";
-    //ex.data.instance.state = {};
+    ex.data.instance.state = {};
 
 
     /* 0 = code with dropdown
@@ -31,6 +31,7 @@ var main = function (ex) {
     var buttonDict = undefined;
     var pressedButtons = [];
     var indexPressedButtons = [];
+    var question1feedback = undefined;
 
     /* Used in question type 0, this is a list of dropdowns and the correct 
      * answer for each dropdown, the code well, and the header
@@ -158,6 +159,7 @@ var main = function (ex) {
                 for (var i = 0; i < buttonList.length; i++) {
                     if (buttonList[i]["correct"] == true) {
                         buttonList[i]["button"].index = i;
+                        buttonList[i]["button"].feedback = buttonList[i]["feedback"];
                         buttonList[i]["button"].on("click", function() {
                             var index = indexPressedButtons.indexOf(this.index);
                             if (index > -1) {
@@ -169,12 +171,14 @@ var main = function (ex) {
                                 pressedButtons.push(true);
                                 indexPressedButtons.push(this.index);
                                 this.style({color : "blue"});
+                                if (showFeedbackBool) showFeedback(this.feedback, true);
                             }
                             saveData();
                         });
                     }
                     else {
                         buttonList[i]["button"].index = i;
+                        buttonList[i]["button"].feedback = buttonList[i]["feedback"];
                         buttonList[i]["button"].on("click", function() {
                             var index = indexPressedButtons.indexOf(this.index);
                             if (index > -1) {
@@ -186,6 +190,7 @@ var main = function (ex) {
                                 pressedButtons.push(false);
                                 indexPressedButtons.push(this.index);
                                 this.style({color : "blue"});
+                                if (showFeedbackBool) showFeedback(this.feedback, false);
                             }
                             saveData();
                         });
@@ -204,6 +209,8 @@ var main = function (ex) {
                     currentIndentPrac.submit();
 
                 }
+                question2qtype = (question2qtype+1) % 2
+
                 break;
         };
         saveData();
@@ -580,11 +587,10 @@ var main = function (ex) {
 
             questionType = (questionType+1)%3;
             if (questionType == 2){
-                question2qtype = (question2qtype+1) % 2
                 var vars = createCode(2,question2qtype);
                 currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
                     vars.question,vars.ca,vars.hint);
-
+                saveData();
             }
             if (ex.data.meta.mode == "quiz-immediate") {
                 questionNum++;
@@ -740,6 +746,12 @@ var main = function (ex) {
         }
         console.log("reset");
         deleteAll();
+        if (questionType == 2){
+            var vars = createCode(2,question2qtype);
+            currentIndentPrac = IndentPrac(vars.leftCode,vars.rightCode,
+                vars.question,vars.ca,vars.hint);
+            saveData();
+        }
         showQuestion();
         console.log("showedQuestion");
         // switch (questionType) {
@@ -938,15 +950,15 @@ var main = function (ex) {
             else {
                 q.cCard.highlight("green");
             }
-        	if (ex.data.meta.mode == "quiz-immediate"){
-            	if (q.clicked == ca) showFeedback("Correct! "+text);      
-            	else showFeedback("Incorrect! "+text);
-        	}
-        	else{
-        		if (q.clicked == ca) showFeedback("Correct! "+text);
-        		else showFeedback("Incorrect! " +text );
-        	}
-        	
+            if (ex.data.meta.mode == "quiz-immediate"){
+                if (q.clicked == ca) showFeedback("Correct! "+text);      
+                else showFeedback("Incorrect! "+text);
+            }
+            else{
+                if (q.clicked == ca) showFeedback("Correct! "+text);
+                else showFeedback("Incorrect! " +text );
+            }
+            
         }
         return q;
     }
@@ -1014,7 +1026,7 @@ var main = function (ex) {
             }
             
             ex.insertDropdown(buttonCodeWell, substring, codeButton);
-            buttonList.push({"button" : codeButton, "correct" : buttonInfo[substring]["correct"]});
+            buttonList.push({"button" : codeButton, "correct" : buttonInfo[substring]["correct"], "feedback" : feedback});
             buttonIndex++;
         }
         console.log(pressedButtons);
@@ -1748,7 +1760,7 @@ var createCode = function(questionType,q2type) {
                                                 "correct" : false};     
             ifButtonInfo["_3"]["{"] = {"feedback" : "In any C-based language this would be right, but not in Python.",
                                                 "correct" : true};
-            ifButtonInfo["_3"][";"] = {"feedback" : "Close!.",
+            ifButtonInfo["_3"][";"] = {"feedback" : "Close!",
                                                 "correct" : true};  
             ifButtonInfo["_4"]["%"] = {"feedback" : "Any arithmetic operator would work here.",
                                                 "correct" : false};
@@ -1844,7 +1856,7 @@ var createCode = function(questionType,q2type) {
                                    +"    return "+var2+" + "+var1+"\n" 
                                    +"    return "+var1;
 
-                    var rdmnum = getRandomInt(0,const1);
+                    var rdmnum = getRandomInt(const1,15);
                     var hint = "What will "+fun2+"("+String(rdmnum)+") return?";
                     if (correct_index == 1){
                         left = correctQ2;
