@@ -1856,7 +1856,7 @@ var createCode = function(questionType,q2type) {
                                    +"    return "+var2+" + "+var1+"\n" 
                                    +"    return "+var1;
 
-                    var rdmnum = getRandomInt(0,const1);
+                    var rdmnum = getRandomInt(const1,15);
                     var hint = "What will "+fun2+"("+String(rdmnum)+") return?";
                     if (correct_index == 1){
                         left = correctQ2;
