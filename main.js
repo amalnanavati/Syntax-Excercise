@@ -57,6 +57,8 @@ var main = function (ex) {
     var feedbackAlert = undefined;
     var isFeedbackShowing = false;
     var feedbackText = undefined;
+
+    var nextButton = undefined;
     
     /* Used in Q type 2*/
     var leftCode1 =  "def isMultipleOfFourLeft(n):\n"
@@ -555,7 +557,7 @@ var main = function (ex) {
         };
         var x = ex.width()-100;
         var y = ex.height()-42;
-        var nextButton = ex.createButton(x, y,buttonText, {
+        nextButton = ex.createButton(x, y,buttonText, {
                                                         color: "white",
                                                         size: "medium"
                                                       });
@@ -728,6 +730,7 @@ var main = function (ex) {
     /* Handles clicks to the reset button
      */
     var reset = function () {
+        if (nextButton !== undefined) nextButton.remove();
         if (feedbackAlert !== undefined) {
             feedbackAlert.remove();
             feedbackAlert = undefined;
