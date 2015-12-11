@@ -9,7 +9,7 @@ var main = function (ex) {
 
 
     //ex.data.meta.mode = "practice";
-    //ex.data.instance.state = {};
+    ex.data.instance.state = {};
 
 
     /* 0 = code with dropdown
@@ -31,6 +31,7 @@ var main = function (ex) {
     var buttonDict = undefined;
     var pressedButtons = [];
     var indexPressedButtons = [];
+    var question1feedback = undefined;
 
     /* Used in question type 0, this is a list of dropdowns and the correct 
      * answer for each dropdown, the code well, and the header
@@ -158,6 +159,7 @@ var main = function (ex) {
                 for (var i = 0; i < buttonList.length; i++) {
                     if (buttonList[i]["correct"] == true) {
                         buttonList[i]["button"].index = i;
+                        buttonList[i]["button"].feedback = buttonList[i]["feedback"];
                         buttonList[i]["button"].on("click", function() {
                             var index = indexPressedButtons.indexOf(this.index);
                             if (index > -1) {
@@ -169,12 +171,14 @@ var main = function (ex) {
                                 pressedButtons.push(true);
                                 indexPressedButtons.push(this.index);
                                 this.style({color : "blue"});
+                                if (showFeedbackBool) showFeedback(this.feedback, true);
                             }
                             saveData();
                         });
                     }
                     else {
                         buttonList[i]["button"].index = i;
+                        buttonList[i]["button"].feedback = buttonList[i]["feedback"];
                         buttonList[i]["button"].on("click", function() {
                             var index = indexPressedButtons.indexOf(this.index);
                             if (index > -1) {
@@ -186,6 +190,7 @@ var main = function (ex) {
                                 pressedButtons.push(false);
                                 indexPressedButtons.push(this.index);
                                 this.style({color : "blue"});
+                                if (showFeedbackBool) showFeedback(this.feedback, false);
                             }
                             saveData();
                         });
@@ -731,6 +736,8 @@ var main = function (ex) {
     /* Handles clicks to the reset button
      */
     var reset = function () {
+        isCorrectAnswerBeingDisplayed = false;
+        enableButtons();
         if (nextButton !== undefined) nextButton.remove();
         if (feedbackAlert !== undefined) {
             feedbackAlert.remove();
@@ -1013,7 +1020,7 @@ var main = function (ex) {
             }
             
             ex.insertDropdown(buttonCodeWell, substring, codeButton);
-            buttonList.push({"button" : codeButton, "correct" : buttonInfo[substring]["correct"]});
+            buttonList.push({"button" : codeButton, "correct" : buttonInfo[substring]["correct"], "feedback" : feedback});
             buttonIndex++;
         }
         console.log(pressedButtons);
@@ -1747,7 +1754,7 @@ var createCode = function(questionType,q2type) {
                                                 "correct" : false};     
             ifButtonInfo["_3"]["{"] = {"feedback" : "In any C-based language this would be right, but not in Python.",
                                                 "correct" : true};
-            ifButtonInfo["_3"][";"] = {"feedback" : "Close!.",
+            ifButtonInfo["_3"][";"] = {"feedback" : "Close!",
                                                 "correct" : true};  
             ifButtonInfo["_4"]["%"] = {"feedback" : "Any arithmetic operator would work here.",
                                                 "correct" : false};
