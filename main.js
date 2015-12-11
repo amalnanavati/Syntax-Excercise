@@ -730,6 +730,8 @@ var main = function (ex) {
     /* Handles clicks to the reset button
      */
     var reset = function () {
+        isCorrectAnswerBeingDisplayed = false;
+        enableButtons();
         if (nextButton !== undefined) nextButton.remove();
         if (feedbackAlert !== undefined) {
             feedbackAlert.remove();
