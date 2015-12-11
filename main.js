@@ -8,7 +8,7 @@
 var main = function (ex) {
 
 
-    ex.data.meta.mode = "practice";
+    //ex.data.meta.mode = "practice";
     //ex.data.instance.state = {};
 
 
@@ -43,6 +43,8 @@ var main = function (ex) {
 
     var score = 0;
     var totalPossibleScore = 0;
+
+    var endOfExercise = false;
 
     /* Keeps track of whether the correct answer is being displayed or not
      */
@@ -223,6 +225,13 @@ var main = function (ex) {
 
         data.isFeedbackShowing = isFeedbackShowing;
         data.feedbackText = feedbackText;
+        console.log(feedbackText);
+
+        data.endOfExercise = endOfExercise;
+        if (endOfExercise) {
+            ex.saveState(data);
+            return;
+        }
 
         switch (questionType) {
             case 0:
@@ -303,15 +312,27 @@ var main = function (ex) {
 
             if (isFeedbackShowing) showFeedback(feedbackText);
 
-            // If quiz mode, write which question you are on
-            if (ex.data.meta.mode == "quiz-immediate") {
-                var title = "Question ".concat(String(questionNum)).concat(" of ").concat(String(totalNumOfQs));
-                if (ex.chromeElements.titleHeader === undefined) ex.setTitle(title);
-                else ex.chromeElements.titleHeader.text(title)
+            endOfExercise = ex.data.instance.state.endOfExercise;
+            console.log(endOfExercise);
+            if (endOfExercise) {
+                var title = "End";
+                if (ex.chromeElements.titleHeader === undefined) {
+                    ex.setTitle(title);
+                } else {
+                    ex.chromeElements.titleHeader.text(title);
+                };
+                return true;
             };
 
             //Display next button if necessary
             if (wasSubmitButtonClicked) createNextButton();
+
+            // If quiz mode, write which question you are on
+            if (ex.data.meta.mode == "quiz-immediate") {
+                var title = "Question ".concat(String(questionNum)).concat(" of ").concat(String(totalNumOfQs));
+                if (ex.chromeElements.titleHeader === undefined) ex.setTitle(title);
+                else ex.chromeElements.titleHeader.text(title);
+            };
 
             switch (questionType) {
                 case 0:
@@ -451,6 +472,7 @@ var main = function (ex) {
                     console.log(currText);
                     console.log(dropdownList[i].correct);
                     if (currText == dropdownList[i].correct) {
+                        console.log("got currect answer");
                         numOfCorrectDropdowns = numOfCorrectDropdowns + 1;
                         dropdownList[i].dropdown.style({color: "green"});
                         oldColors[i] = "green";
@@ -468,7 +490,6 @@ var main = function (ex) {
                 //if (numOfCorrectDropdowns >= dropdownList.length/2) beginning = "Good job!  "
                 var feedback = beginning.concat("You got ").concat(String(numOfCorrectDropdowns)).concat(" dropdowns correct out of ").concat(String(dropdownList.length)).concat(".  Press '").concat(buttonText).concat("' to move on.");
                 showFeedback(feedback);
-                /* Enable Display CA Button */
                 if (ex.data.meta.mode == "practice") ex.chromeElements.displayCAButton.enable();
                 break;
             case 1:
@@ -516,8 +537,10 @@ var main = function (ex) {
                 currentIndentPrac.rightCard.well.off("click");
                 saveData();
                 if (ex.data.meta.mode == "practice") ex.chromeElements.displayCAButton.enable();
+                break;
                 
         };
+        ex.chromeElements.submitButton.disable();
         createNextButton(buttonText);
         saveData();
     };
@@ -535,13 +558,14 @@ var main = function (ex) {
                                                         size: "medium"
                                                       });
         nextButton.on("click", function () {
+            ex.chromeElements.submitButton.enable();
             wasSubmitButtonClicked = false;
             isCorrectAnswerBeingDisplayed = false;
 
             if (feedbackAlert !== undefined) {
                 feedbackAlert.remove();
                 isFeedbackShowing = false;
-            };
+            }
 
             deleteAll();
             //if (questionType == 2) {
@@ -561,8 +585,10 @@ var main = function (ex) {
                 questionNum++;
                 if (questionNum > totalNumOfQs) {
                     endOfExcercise();
+                    console.log(endOfExercise);
                     nextButton.remove();
                     ex.chromeElements.submitButton.disable();
+                    saveData();
                     return;
                 }
             };
@@ -573,6 +599,7 @@ var main = function (ex) {
             nextButton.remove();
             /* Disable Display CA Button */
             ex.chromeElements.displayCAButton.disable();
+            saveData();
         });
     }
 
@@ -588,10 +615,14 @@ var main = function (ex) {
     /* End of excercise
      */
     var endOfExcercise = function () {
+        endOfExercise = true;
+        var title = "End";
+        if (ex.chromeElements.titleHeader === undefined) ex.setTitle(title);
+        else ex.chromeElements.titleHeader.text(title);
         var percent = score/totalPossibleScore;
         var feedback = "You got ".concat(String(score)).concat(" out of ").concat(String(totalPossibleScore)).concat(" points.\n ").concat(String(percent*100)).concat("%");
-        showFeedback(feedback);
         ex.setGrade(percent, feedback);
+        showFeedback(feedback);
     }
 
     /* Delete element112s
@@ -734,7 +765,7 @@ var main = function (ex) {
             enableButtons();
             showQuestion();
         };
-        if (questionType == 2) showQuestion();
+        //if (questionType == 2) showQuestion();
     }
 
     function CodeCard(left,content,ca,hint){
@@ -1533,10 +1564,6 @@ var createCode = function(questionType,q2type) {
                                 };
                             };
 
-                            var choice31 = "(1, ".concat(variable1).concat(")");
-                            var choice32 = "(0, ".concat(variable1).concat("+1)");
-                            var choice33 = "(1, ".concat(variable1).concat("+1, 2)");
-
                             var wrong5 = "";
                             if (print == 1) {
                                 wrong5 = "return ";
@@ -1569,16 +1596,13 @@ var createCode = function(questionType,q2type) {
                             dropdownInfo["'_2'"][correct2] = {"feedback" : "A while loop continually iterates until the conditional following it is false.",
                                                                         "correct" : true,
                                                                         "default" : false};
-                            dropdownInfo["'_3'"][correct3] = {"feedback" : "You want i to iterate from 1 to x+1, exclusive of the last argument.",
+                            dropdownInfo["'_3'"][correct3] = {"feedback" : "/= first divides the numbers, and assigns the value to the variable on its left.",
                                                                         "correct" : true,
                                                                         "default" : false};
                             dropdownInfo["'_3'"]["/ 2"] = {"feedback" : "Are you storing the result of the division anywhere?",
                                                                         "correct" : false,
                                                                         "default" : true};
                             dropdownInfo["'_3'"]["=/ 2"] = {"feedback" : "What is the order of the = and /?",
-                                                                        "correct" : false,
-                                                                        "default" : false};
-                            dropdownInfo["'_3'"][choice33] = {"feedback" : "/= first divides the numebrs, and assigns the value to the variable on its left.",
                                                                         "correct" : false,
                                                                         "default" : false};
                             dropdownInfo["'_4'"]["+"] = {"feedback" : "Are you actually storing the value of this addition anywhere?",
@@ -1870,7 +1894,7 @@ var dropdownToListOfOptions = function (dropdown) {
 var dropdownToDefaultLabel = function (dropdown) {
     //Label is the text after the first > and before the next <
     var begin = '>';
-    var end = '<';
+    var end = ' <';
     var currText = dropdown.text();
     console.log(currText);
     currText = currText.slice(currText.indexOf(begin)+begin.length, currText.indexOf(end, currText.indexOf(begin)));
