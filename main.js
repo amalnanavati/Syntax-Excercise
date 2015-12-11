@@ -31,7 +31,9 @@ var main = function (ex) {
     var buttonDict = undefined;
     var pressedButtons = [];
     var indexPressedButtons = [];
-    var question1feedback = undefined;
+    var correctAnswers = undefined;
+    var q1OldAnswers = [];
+    var q1OldColors = [];
 
     /* Used in question type 0, this is a list of dropdowns and the correct 
      * answer for each dropdown, the code well, and the header
@@ -142,6 +144,7 @@ var main = function (ex) {
                 buttonInfo = codeInfo.buttonInfo;
                 var descr = codeInfo.descr;
                 buttonDict = codeInfo.buttonDict;
+                correctAnswers = codeInfo.correctAnswers;
                 
                 buttonHeader = ex.createParagraph(0, 0, descr, {size : "xlarge", width : ex.width(), textAlign : "center"});
                 var margin = 50;
@@ -274,6 +277,9 @@ var main = function (ex) {
                 data.descr = buttonHeader.text();
                 data.pressedButtons = pressedButtons;
                 data.indexPressedButtons = indexPressedButtons;
+                data.correctAnswers = correctAnswers;
+                data.q1OldAnswers = q1OldAnswers;
+                data.q1OldColors = q1OldColors;
                 break;
             case 2:
                 data.question2submitted = currentIndentPrac.submitted;
@@ -388,6 +394,9 @@ var main = function (ex) {
                     buttonCode = ex.data.instance.state.buttonCode;
                     buttonInfo = ex.data.instance.state.buttonInfo;
                     buttonDict = ex.data.instance.state.buttonDict;
+                    correctAnswers = ex.data.instance.state.correctAnswers;
+                    q1OldAnswers = ex.data.instance.state.q1OldAnswers;
+                    q1OldColors = ex.data.instance.state.q1OldColors;
                     var descr = ex.data.instance.state.descr;
                     pressedButtons = ex.data.instance.state.pressedButtons;
                     indexPressedButtons = ex.data.instance.state.indexPressedButtons;
@@ -406,6 +415,7 @@ var main = function (ex) {
                     for (var i = 0; i < buttonList.length; i++) {
                         if (buttonList[i]["correct"] == true) {
                             buttonList[i]["button"].index = i;
+                            buttonList[i]["button"].feedback = buttonList[i]["feedback"];
                             buttonList[i]["button"].on("click", function() {
                                 var index = indexPressedButtons.indexOf(this.index);
                                 if (index > -1) {
@@ -417,12 +427,14 @@ var main = function (ex) {
                                     pressedButtons.push(true);
                                     indexPressedButtons.push(this.index);
                                     this.style({color : "blue"});
+                                    if (showFeedbackBool) showFeedback(this.feedback, true);
                                 }
                                 saveData();
                             });
                         }
                         else {
                             buttonList[i]["button"].index = i;
+                            buttonList[i]["button"].feedback = buttonList[i]["feedback"];
                             buttonList[i]["button"].on("click", function() {
                                 var index = indexPressedButtons.indexOf(this.index);
                                 if (index > -1) {
@@ -434,6 +446,7 @@ var main = function (ex) {
                                     pressedButtons.push(false);
                                     indexPressedButtons.push(this.index);
                                     this.style({color : "blue"});
+                                    if (showFeedbackBool) showFeedback(this.feedback, false);
                                 }
                                 saveData();
                             });
@@ -515,9 +528,11 @@ var main = function (ex) {
                     if (buttonList[j]["correct"] == true) {
                         total++;
                         buttonList[j]["button"].style({color : "green"});
+                        q1OldColors[j] = "green";
                     }
                     else {
                         buttonList[j]["button"].style({color : "red"});
+                        q1OldColors[j] = "red";
                     }
                     buttonList[j]["button"].disable();
                 }
@@ -718,11 +733,20 @@ var main = function (ex) {
                 };
                 break;
             case 1:
-                // if (isCorrectAnswerBeingDisplayed) {
-                //     for (var i = 0; i < buttonList.length; i++) {
-                //         buttonList[i].
-                //     }
-                // }
+                if (isCorrectAnswerBeingDisplayed) {
+                    for (var i = 0; i < q1OldAnswers.length; i++) {
+                        buttonList[i]["button"].text(q1OldAnswers[i]);
+                        console.log(q1OldColors[i]);
+                        buttonList[i]["button"].style({color : q1OldColors[i]});
+                    }
+                }
+                else {
+                    for (var i = 0; i < buttonList.length; i++) {
+                        q1OldAnswers[i] = buttonList[i]["button"].text();
+                        buttonList[i]["button"].text(correctAnswers["_" + (i +  1).toString()]);
+                        buttonList[i]["button"].style({color : "orange"});
+                    }
+                }
                 break;
             case 2:
                 currentIndentPrac.clear();
@@ -981,23 +1005,11 @@ var main = function (ex) {
             if (correct) {
                 if (showFeedbackIfCorrect) {
                     feedback = buttonInfo[substring]["feedback"];
-                    // feedback = "Correct!  ".concat(feedback);
-                    // var message = ex.alert(feedback, {
-                    //     fontSize: 20,
-                    //     stay: true,
-                    //     color:"green"
-                    // });
                 }
             }
             else {
                 if (showFeedbackIfWrong) {
                     feedback = buttonInfo[substring]["feedback"];
-                    // feedback = "Incorrect!  ".concat(feedback);
-                    // var message = ex.alert(feedback, {
-                    //     fontSize: 20,
-                    //     stay: true,
-                    //     color:"red"
-                    // });
                 }
             }
             
@@ -1800,7 +1812,7 @@ var createCode = function(questionType,q2type) {
                                                 "correct" : true};
             ifButtonInfo["_9"][";"] = {"feedback" : "No other syntax needed here.",
                                                 "correct" : true};                                                                                                                                                                                                              
-
+            var ifCorrectDict = {"_1" : _1correct, "_2" : "isEven", "_3" : _3correct, "_4" : "%", "_5" : _5correct, "_6" : _6correct, "_7" : _7correct, "_8" : _8correct, "_9" : _9correct};
             var descr = "Click on the syntax errors in the following code excerpt. Blue buttons mean you've selected a button." +
                         " Click again to deselect. Blank buttons represent white space/no syntax needed.";
             var code = "";
@@ -1808,12 +1820,16 @@ var createCode = function(questionType,q2type) {
                                 "_6" : {}, "_7" : {}, "_8" : {}, "_9" : {}};
             var buttonInfo = {"_1" : {}, "_2" : {}, "_3" : {}, "_4" : {}, "_5" : {},
                                 "_6" : {}, "_7" : {}, "_8" : {}, "_9" : {}};
+            var correctDict = {"_1" : {}, "_2" : {}, "_3" : {}, "_4" : {}, "_5" : {},
+                                "_6" : {}, "_7" : {}, "_8" : {}, "_9" : {}};
             if (infoNum == 0) {
                 code = ifCode;
                 buttonDict = ifDict;
+                correctDict = ifCorrectDict;
                 for (var substring in ifDict) {
                     buttonInfo[substring] = ifButtonInfo[substring][ifDict[substring]];
                 }
+
             }
             else {
                 code = loopCode;
@@ -1822,7 +1838,7 @@ var createCode = function(questionType,q2type) {
                     buttonInfo[substring] = loopButtonInfo[substring][loopDict[substring]];
                 }
             }
-            return {"code" : code, "buttonInfo" : buttonInfo, "buttonDict" : buttonDict, "descr" : descr};
+            return {"code" : code, "buttonInfo" : buttonInfo, "buttonDict" : buttonDict, "descr" : descr, "correctAnswers" : correctDict};
             break;
         case 2:
             var variableNames = ["x", "y", "z", "n", "i"];
