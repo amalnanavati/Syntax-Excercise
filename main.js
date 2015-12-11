@@ -126,8 +126,8 @@ var main = function (ex) {
                 var width = ex.width()-x-margin;
                 var height = ex.height()-y-margin;
 
-                var showFeedback = (ex.data.meta.mode != "quiz-immediate");
-                var dict = createCodeWellWithOptions(ex, x, y, width, height, question0Code, dropdownInfo, showFeedback, showFeedback, true, saveData);
+                var showFeedbackBool = (ex.data.meta.mode != "quiz-immediate");
+                var dict = createCodeWellWithOptions(ex, x, y, width, height, question0Code, dropdownInfo, showFeedbackBool, showFeedbackBool, true, saveData, showFeedback);
                 dropdownList = dict["dropdown"];
                 question0CodeWell = dict["code"];
                 console.log(question0CodeWell);
@@ -147,8 +147,8 @@ var main = function (ex) {
                 var width = ex.width() - x - margin;
                 var height = ex.height() - y - margin * 2;
                 
-                var showFeedback = (ex.data.meta.mode != "quiz-immediate");
-                var dict = clickableCodeWell(x, y, width, height, buttonCode, buttonInfo, buttonDict, pressedButtons, showFeedback, showFeedback, true);
+                var showFeedbackBool = (ex.data.meta.mode != "quiz-immediate");
+                var dict = clickableCodeWell(x, y, width, height, buttonCode, buttonInfo, buttonDict, pressedButtons, showFeedbackBool, showFeedbackBool, true);
                 buttonList = dict["button"];
                 console.log(buttonList);
                 buttonCodeWell = dict["code"];
@@ -194,7 +194,7 @@ var main = function (ex) {
             case 2:
                 /* delete and draw */
                 ex.graphics.ctx.clearRect(0,0,ex.width(),ex.height());
-                var showFeedback = (ex.data.meta.mode != "quiz-immediate");
+                var showFeedbackBool = (ex.data.meta.mode != "quiz-immediate");
                 currentIndentPrac.draw();
                 if (currentIndentPrac.submitted){
                     currentIndentPrac.leftCard.well.off("click");
@@ -362,7 +362,7 @@ var main = function (ex) {
                         //Save dropdown selected text, extract it from the html
                         var string1 = 'data-toggle="dropdown">';
                         var string2 = ' <span class="caret">';
-                        for (var i = 0; i < dropdownDefaults.length; i++) {
+                        for (var i = 0; i < dropdownDefaults.length; i++) { 
                             dropdownList[i].dropdown.text(dropdownDefaults[i]);
                             if (wasSubmitButtonClicked) {
                                 if (isCorrectAnswerBeingDisplayed) {
@@ -566,6 +566,7 @@ var main = function (ex) {
 
             if (feedbackAlert !== undefined) {
                 feedbackAlert.remove();
+                feedbackAlert = undefined;
                 isFeedbackShowing = false;
             }
 
@@ -605,12 +606,25 @@ var main = function (ex) {
         });
     }
 
-    var showFeedback = function (feedback) {
+    var showFeedback = function (feedback, correct) {
+        var color = "yellow";
+        if (correct === true) {
+            color = "green";
+        } 
+        if (correct === false) {
+            color = "red";
+        }
+        if (feedbackAlert !== undefined) {
+            feedbackAlert.remove();
+            feedbackAlert = undefined;
+            isFeedbackShowing = false;
+        }
         feedbackText = feedback;
         isFeedbackShowing = true;
         feedbackAlert = ex.alert(feedback, {
             fontSize: 20,
-            stay: true
+            stay: true,
+            color: color
         });
     }
 
@@ -768,7 +782,7 @@ var main = function (ex) {
             enableButtons();
             showQuestion();
         };
-        //if (questionType == 2) showQuestion();
+        if (endOfExercise == false && questionType == 2) showQuestion();
     }
 
     function CodeCard(left,content,ca,hint){
@@ -1004,32 +1018,24 @@ var main = function (ex) {
 /* Success and failure functions, which will be called when the user selects
  * an option on the dropdown
  */
-var getSuccessFn = function (ex, feedback, saveData, showFeedback, option, dropdownI) {
+var getSuccessFn = function (ex, feedback, saveData, showFeedback, option, dropdownI, showFeedbackFn) {
     return function () {
         console.log(option);
         console.log(dropdownI);
         if (showFeedback) {
             feedback = "Correct!  ".concat(feedback);
-            var message = ex.alert(feedback, {
-                    fontSize: 20,
-                    stay: true,
-                    color:"green"
-            });
+            showFeedbackFn(feedback, true);
         }
         saveData(option, dropdownI);
     };
 };
-var getFailureFn = function (ex, feedback, saveData, showFeedback, option, dropdownI) {
+var getFailureFn = function (ex, feedback, saveData, showFeedback, option, dropdownI, showFeedbackFn) {
     return function () {
         console.log(option);
         console.log(dropdownI);
         if (showFeedback) {
             feedback = "Incorrect!  ".concat(feedback);
-            var message = ex.alert(feedback, {
-                    fontSize: 20,
-                    stay: true,
-                    color:"red"
-            });
+            showFeedbackFn(feedback, false);
         }
         saveData(option, dropdownI);
     };
@@ -1046,7 +1052,7 @@ var getFailureFn = function (ex, feedback, saveData, showFeedback, option, dropd
  * maps to the dropdown, and the key "correct" maps to the correct answer for
  * that dropdown.
  */
-var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdownInfo, showFeedbackIfCorrect, showFeedbackIfWrong, randomDefault, saveData) {
+var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdownInfo, showFeedbackIfCorrect, showFeedbackIfWrong, randomDefault, saveData, showFeedbackFn) {
 
     /* Create the code well */
     var codeWell = ex.createCode(x, y, code, {size:"large", width:width, height:height});
@@ -1077,10 +1083,10 @@ var createCodeWellWithOptions = function (ex, x, y, width, height, code, dropdow
                     if (correct) {
                         correctAnswer = option;
                         feedback = dropdownInfo[substring][option]["feedback"];   
-                        elements[option] = getSuccessFn(ex, dropdownInfo[substring][option]["feedback"], saveData, showFeedbackIfCorrect, option, dropdownI);
+                        elements[option] = getSuccessFn(ex, dropdownInfo[substring][option]["feedback"], saveData, showFeedbackIfCorrect, option, dropdownI, showFeedbackFn);
                     } else {
                         feedback = dropdownInfo[substring][option]["feedback"]; 
-                        elements[option] = getFailureFn(ex, dropdownInfo[substring][option]["feedback"], saveData, showFeedbackIfWrong, option, dropdownI);  
+                        elements[option] = getFailureFn(ex, dropdownInfo[substring][option]["feedback"], saveData, showFeedbackIfWrong, option, dropdownI, showFeedbackFn);  
                     };
                 };
             };
@@ -1920,7 +1926,7 @@ var dropdownToDefaultLabel = function (dropdown) {
     console.log(currText);
     currText = currText.slice(currText.indexOf(begin)+begin.length, currText.indexOf(end, currText.indexOf(begin)));
     console.log(currText);
-    return currText;
+    return decodeHTMLEntities(currText);
 };
 
 var decodeHTMLEntities = function (text) {
